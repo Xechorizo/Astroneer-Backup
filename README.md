@@ -12,3 +12,7 @@ Each script corresponds to a scheduled task.
 Tasks are triggered only when the game is running.
 Backups are triggered by auditing save change events.
 Backups are deleted when older than the backup lifetime.
+
+MAKE MANUAL BACKUPS PRIOR TO USE
+ONLY COMPATIBLE WITH STEAM VERSION
+PROVIDED AS-IS WITH NO GUARANTEE EXPRESS OR IMPLIED
