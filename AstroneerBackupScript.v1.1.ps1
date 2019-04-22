@@ -113,6 +113,7 @@ Function Get-Done {
 
 #Count the backups.
 Function Get-BackupCount {
+	Get-Done
 	If ($bDestExists) {
 		$script:bCount = (Get-ChildItem $bDest -Filter *.savegame).Count
 	}
@@ -133,6 +134,7 @@ Function Set-Lifetime {
 
 #Get backup lifetime from config, or set default if missing. Units are in days.
 Function Get-Lifetime {
+	Get-Done
 	If ($bLifetimeConfigExists) {
 		[Int]$script:bLifetime = (Get-Content $bLifetimeConfig)
 	}
@@ -144,6 +146,7 @@ Function Get-Lifetime {
 #Export task audit policy for modification.
 Function Export-Task {
 	secedit /export /cfg "$env:TEMP\secpol.cfg" | Out-Null
+	Get-Done
 }
 
 #Write the specified count of blank lines.
