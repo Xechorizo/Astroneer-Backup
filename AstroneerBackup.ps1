@@ -24,6 +24,7 @@
 #X Check for Early Acces binary paths
 #X Correct escapes for task script launch
 #X Improve task game detection
+#X Improve elevation checks
 
 #Future To-Do:
 #Remove all sleeps
@@ -32,15 +33,37 @@
 #Improve variables for consecutive enable/disable
 
 #Stop on error.
-$ErrorActionPreference = "Stop"
+#$ErrorActionPreference = "Stop"
 
-# Self-elevate the script, if required.
+#Wait to receive any key from user.
+Function Get-Prompt {
+	cmd /c pause | Out-Null
+	#$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown')
+}
+
+#Write the specified count of blank lines.
+Function Write-Blank($Count) {
+	For ($i=0; $i -lt $Count; $i++) {
+		Write-Host ""
+	}
+}
+
+#Self-elevate the script, if required.
 If (!([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] 'Administrator')) {
 	If ([int](Get-CimInstance -Class Win32_OperatingSystem | Select-Object -ExpandProperty BuildNumber) -ge 6000) {
 	 $CommandLine = "-File `"" + $MyInvocation.MyCommand.Path + "`" " + $MyInvocation.UnboundArguments
 	 Start-Process -FilePath PowerShell.exe -Verb Runas -ArgumentList $CommandLine
 	 Exit
 	}
+}
+
+#Advise if elevation is needed.
+$cPrinc = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
+If (!$cPrinc.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
+	Clear-Host
+	Write-Host -F RED "Administrator privileges are required..."
+	Get-Prompt
+	Exit
 }
 
 #Declare variables.
@@ -146,13 +169,6 @@ Function Export-Task {
 	secedit /export /cfg "$env:TEMP\secpol.cfg" | Out-Null
 }
 
-#Write the specified count of blank lines.
-Function Write-Blank($Count) {
-	For ($i=0; $i -lt $Count; $i++) {
-		Write-Host ""
-	}
-}
-
 #Highlight boolean results respectively.
 Function Write-Highlight($Exists) {
 	If ($Exists) {Write-Host -F GREEN "$Exists"} Else {Write-Host -F RED "$Exists"}
@@ -161,12 +177,6 @@ Function Write-Highlight($Exists) {
 #Highlight boolean results respectively, on the same line.
 Function Write-HighlightNNL($Exists) {
 	If ($Exists) {Write-Host -F GREEN "$Exists" -N} Else {Write-Host -F RED "$Exists" -N}
-}
-
-#Wait to receive any key from user.
-Function Get-Prompt {
-	cmd /c pause | Out-Null
-	#$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown')
 }
 
 #Assuming if Astroneer folder exists, Astroneer is installed.
@@ -472,7 +482,7 @@ Function Enable-Backup {
 '#Task audit 4688 invokes backup action.
 
 #Stop on error.
-$ErrorActionPreference = "Stop"
+#$ErrorActionPreference = "Stop"
 
 # Self-elevate the script, if required.
 If (!([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] ''Administrator'')) {
