@@ -26,6 +26,7 @@
 #X Improve task game detection
 #X Improve elevation checks
 #X Improve Readme
+#X 10 backups are always kept.
 
 #Future To-Do:
 #Remove all sleeps
@@ -309,7 +310,7 @@ Function Write-MainMenu {
 				Write-Host -F WHITE "To enable backup, type 1 and Enter at the Main Menu."
 				Write-Host -F WHITE "To disable backup, type 2 and Enter at the Main Menu."
 				Write-Host -F White "To open the backup folder, type 3 and Enter at the Main Menu."
-				Write-Host -F WHITE "Backups are kept for 30 days by default."
+				Write-Host -F WHITE "Backups are kept for 30 days by default. 10 backups are always kept."
 				Write-Host -F YELLOW "Backup will only work if this appears in the Main Menu: " -N; Write-Host -F WHITE "Backup ENABLED: " -N; Write-Host -F GREEN "True"
 				Write-Blank(1)
 				Write-Host -N -F YELLOW "Press any key to CONTINUE..."
@@ -545,7 +546,7 @@ $bAction = {
 	$bFullExists = $(Test-Path ($bFull))
 	If (!$bFullExists) {
 		Copy-Item "$bSource\$sGame" -Destination $bFull | #Out-Null
-		Get-ChildItem $bDest | Where-Object { $_.LastWriteTime -lt $dDate } | Remove-Item
+		Get-ChildItem $bDest | Where-Object { $_.LastWriteTime -lt $dDate } | Sort CreationTime -Desc | Select -Skip 10 | Remove-Item -Force
 	}
 }
 
