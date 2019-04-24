@@ -1,6 +1,6 @@
 Astroneer Backup
 
-Version 1.2
+Download Version 1.2: https://github.com/Xechorizo/Astroneer-Backup/blob/master/AstroneerBackup.exe
 
 Made by Xech
 
