@@ -18,10 +18,13 @@
 #X Package .ps1 as .exe
 
 #1.2 To-Do:
-#Declare script authoring as functions
-#Consolidate tasks into one
-#Remove most or all sleeps
+#X Consolidate tasks into one
+#X Update for Astroneer game dir change
+
+#Future To-Do:
+#Remove all sleeps
 #Auto update
+#Move enable operations into functions
 
 #Stop on error.
 $ErrorActionPreference = "Stop"
@@ -66,13 +69,13 @@ Function Get-LaunchDir {
 	$sLaunched = $False
 	#Check the Steam library first.
 	If (Test-Path HKLM:\SOFTWARE\WOW6432Node\Valve\Steam) {
-		$SteamPath = (Get-ItemProperty -Path HKLM:\SOFTWARE\WOW6432Node\Valve\Steam -Name InstallPath).InstallPath
+		$script:SteamPath = (Get-ItemProperty -Path HKLM:\SOFTWARE\WOW6432Node\Valve\Steam -Name InstallPath).InstallPath
 	}
-	If (Test-Path "$SteamPath\steamapps\common\Astroneer Early Access\Astro.exe") {
-		$script:gLaunchDir = "$SteamPath\steamapps\common\Astroneer Early Access\Astro.exe"
+	If (Test-Path "$SteamPath\steamapps\common\ASTRONEER\Astro\Binaries\Win64\Astro-Win64-Shipping.exe") {
+		$script:gLaunchDir = "$SteamPath\steamapps\common\ASTRONEER\Astro\Binaries\Win64\Astro-Win64-Shipping.exe"
 	}
 	Else {
-	$script:gLaunchDir = (Get-Process -Name Astro -ErrorAction SilentlyContinue).Path
+	$script:gLaunchDir = (Get-Process -Name Astro-Win64-Shipping -ErrorAction SilentlyContinue).Path
 	}
 	#If game process isn't found, launch it to find it.
 	If ($script:gInstalled -And (![bool]$script:gLaunchDir))  {
@@ -81,7 +84,7 @@ Function Get-LaunchDir {
 		Do {
 			#Wait for game to launch, trying to get path.
 			For ($i=0, $i -lt 10, $i++) {
-				$script:gLaunchDir = (Get-Process -Name Astro -ErrorAction SilentlyContinue).Path
+				$script:gLaunchDir = (Get-Process -Name Astro-Win64-Shipping -ErrorAction SilentlyContinue).Path
 				Start-Sleep -Seconds 1
 			}
 		}
@@ -98,25 +101,26 @@ Function Get-LaunchDir {
 Function Get-Done {
 	$script:bSourceExists = $(Test-Path $bSource)
 	$script:bDestExists = $(Test-Path $bDest)
-	$script:bConfigExists = $(Test-Path $bConfig)
-	$script:bScriptExists = $(Test-Path $bScript)
-	$script:bLifetimeConfigExists = $(Test-Path $bLifetimeConfig)
-	Export-Task
-	$script:bTaskAuditExists = $(Test-Path($bTaskAudit)) -And $($null -ne (Select-String -Path "$bTaskAudit" -Pattern 'AuditProcessTracking = 1'))
-	$script:bTaskExists = $($null -ne (Get-ScheduledTask | Where-Object {$_.TaskName -like $bTaskName}))
-	$script:AllDone = $($bDestExists -And $bConfigExists -And $bScriptExists -And $bTaskAuditExists -And $bTaskExists)
-	$script:AllUndone = $(!($bDestExists -Or $bConfigExists -Or $bScriptExists -Or $bTaskAuditExists -Or $bTaskExists))
-}
-
-#Count the backups.
-Function Get-BackupCount {
-	Get-Done
 	If ($bDestExists) {
 		$script:bCount = (Get-ChildItem $bDest -Filter *.savegame).Count
 	}
 	Else {
 		$script:bCount = 0
 	}
+	$script:bConfigExists = $(Test-Path $bConfig)
+	$script:bScriptExists = $(Test-Path $bScript)
+	$script:bLifetimeConfigExists = $(Test-Path $bLifetimeConfig)
+	If ($bLifetimeConfigExists) {
+		[Int]$script:bLifetime = (Get-Content $bLifetimeConfig)
+	}
+	Else {
+		[Int]$script:bLifetime = 30
+	}
+	Export-Task
+	$script:bTaskAuditExists = $(Test-Path($bTaskAudit)) -And $($null -ne (Select-String -Path "$bTaskAudit" -Pattern 'AuditProcessTracking = 1'))
+	$script:bTaskExists = $($null -ne (Get-ScheduledTask | Where-Object {$_.TaskName -like $bTaskName}))
+	$script:AllDone = $($bDestExists -And $bConfigExists -And $bScriptExists -And $bTaskAuditExists -And $bTaskExists)
+	$script:AllUndone = $(!($bDestExists -Or $bConfigExists -Or $bScriptExists -Or $bTaskAuditExists -Or $bTaskExists))
 }
 
 #Set backup lifetime config. Units are in days.
@@ -127,17 +131,6 @@ Function Set-Lifetime {
 		}
 		Add-Content $bLifetimeConfig $bLifetime
 		[Int]$script:bLifetime = (Get-Content $bLifetimeConfig)
-}
-
-#Get backup lifetime from config, or set default if missing. Units are in days.
-Function Get-Lifetime {
-	Get-Done
-	If ($bLifetimeConfigExists) {
-		[Int]$script:bLifetime = (Get-Content $bLifetimeConfig)
-	}
-	Else {
-		[Int]$script:bLifetime = 30
-	}
 }
 
 #Export task audit policy for modification.
@@ -192,8 +185,6 @@ Function Get-GameInstalled {
 				$script:gInstalled = $False
 				Clear-Host
 				Export-Task
-				Get-Lifetime
-				Get-BackupCount
 				Get-Done
 				Write-MainMenu
 			}
@@ -366,7 +357,7 @@ Function Enable-Backup {
 			Write-Host -F RED "ERROR creating Astroneer backup folder:" $bDest
 		}
 	}
-		
+
 	#Check for conifg folder.
 	Get-Done
 	While (!($bConfigExists)) {
@@ -380,37 +371,36 @@ Function Enable-Backup {
 		Else {
 			Write-Host -F RED "ERROR creating Astroneer backup folder:" $bConfig
 		}
+	}
 
 	#Check for exported security policy for task auditing.
-		Get-Done
-		While (!($bTaskAuditExists)) {
+	Get-Done
+	While (!($bTaskAuditExists)) {
+		Write-Blank(1)
+		Write-Host -F YELLOW "CREATING Astroneer backup task audit..."
+		Export-Task
+		(Get-Content $bTaskAudit).replace('AuditProcessTracking = 0','AuditProcessTracking = 1') | Out-File $bTaskAudit
+		secedit /configure /db c:\windows\security\local.sdb /cfg $bTaskAudit /areas SECURITYPOLICY | Out-Null
+		Export-Task
+		$bTaskAuditExists = $(Test-Path($bTaskAudit)) -And $($null -ne (Select-String -Path "$bTaskAudit" -Pattern 'AuditProcessTracking = 1'))
+		If ($bTaskAuditExists) {
+			Write-Host -F GREEN "CREATED Astroneer backup task audit:" $bTaskAudit
 			Write-Blank(1)
-			Write-Host -F YELLOW "CREATING Astroneer backup task audit..."
-			Export-Task
-			(Get-Content $bTaskAudit).replace('AuditProcessTracking = 0','AuditProcessTracking = 1') | Out-File $bTaskAudit
-			secedit /configure /db c:\windows\security\local.sdb /cfg $bTaskAudit /areas SECURITYPOLICY | Out-Null
-			Export-Task
-			$bTaskAuditExists = $(Test-Path($bTaskAudit)) -And $($null -ne (Select-String -Path "$bTaskAudit" -Pattern 'AuditProcessTracking = 1'))
-			If ($bTaskAuditExists) {
-				Write-Host -F GREEN "CREATED Astroneer backup task audit:" $bTaskAudit
-				Write-Blank(1)
-				Write-Host -N -F YELLOW "Press any key to CONTINUE..."
-				Get-Prompt
-			}
-			Else {
-				Write-Host -F RED "ERROR creating Astroneer backup task audit:" $bTaskAudit
-				Write-Blank(1)
-				Write-Host -N -F YELLOW "Press any key to CONTINUE..."
-				Get-Prompt
-				Get-Done
-				Write-MainMenu
-			}
+			Write-Host -N -F YELLOW "Press any key to CONTINUE..."
+			Get-Prompt
+		}
+		Else {
+			Write-Host -F RED "ERROR creating Astroneer backup task audit:" $bTaskAudit
+			Write-Blank(1)
+			Write-Host -N -F YELLOW "Press any key to CONTINUE..."
+			Get-Prompt
+			Get-Done
+			Write-MainMenu
 		}
 	}
 
 	#Set backup lifetime.
 	Get-Done
-	Get-Lifetime
 	While (!($bLifetimeConfigExists)) {
 		Clear-Host
 		Write-Host -F WHITE "Astroneer backup LIFETIME: " -N; Write-Host -F YELLOW "$bLifetime" -N; Write-Host -F WHITE " Days"
@@ -429,6 +419,7 @@ Function Enable-Backup {
 		Switch -Regex ($Choice) {
 			"Y" {
 				Do {
+					Write-Blank(1)
 					Write-Host -F WHITE "ENTER the amount of days from 1 to 365 (default 30): " -N
 					$Choice = Read-Host
 					$Ok = $Choice -match '^([1-9]\d?|[12]\d\d|3[0-5]\d|36[0-5])$|^$'
@@ -464,12 +455,12 @@ Function Enable-Backup {
 	#Check for backup scripts.
 	Get-Done
 	While (!($bScriptExists)) {
-		Write-Host -F YELLOW "CREATING Astroneer backup scripts..."
+		Write-Host -F YELLOW "CREATING Astroneer backup script..."
 		$bScriptContent =
 
-			#Start backup script.
-'@
-#Stop on error.
+		#Start backup script.
+
+'#Stop on error.
 $ErrorActionPreference = "Stop"
 
 # Self-elevate the script, if required.
@@ -487,7 +478,7 @@ $bConfig = $bDest + "Config\"
 $bLifetimeConfig = "$bConfig" + "bLifetime.cfg"
 $bLifetime = (Get-Content $bLifetimeConfig)
 $bFilter = "*.savegame"
-$isRunning = ([bool](Get-Process -Name Astro -ErrorAction SilentlyContinue))
+$gRunning = ([bool](Get-Process -Name Astro-Win64-Shipping -ErrorAction SilentlyContinue))
 $sWatcher = New-Object IO.FileSystemWatcher $bSource, $bFilter -Property @{ 
 	EnableRaisingEvents = $true
 	IncludeSubdirectories = $false
@@ -501,31 +492,39 @@ $bAction = {
 	$bFull = $bDest + "$sGame"
 	$bFullExists = $(Test-Path ($bFull))
 	If (!$bFullExists) {
-		Copy-Item "$bSource\$sGame" -Destination $bFull | Out-Null
+		Copy-Item "$bSource\$sGame" -Destination $bFull | #Out-Null
 		Get-ChildItem $bDest | Where-Object { $_.LastWriteTime -lt $dDate } | Remove-Item
 	}
 }
 
+$Handler = . {
 Register-ObjectEvent -InputObject $sWatcher -EventName Changed -SourceIdentifier AstroFSWChange -Action $bAction | Out-Null
-
-While ($isRunning) {
-	Start-Sleep -Seconds 1
-	$isRunning = ([bool](Get-Process -Name Astro -ErrorAction SilentlyContinue))
-	}
-Until (!($isRunning)) {
-	Unregister-Event -SourceIdentifier AstroFSWChange -ErrorAction SilentlyContinue
-	Stop-Process $PID
 }
-@'
-			#End backup script.
 
-	Add-Content $bScript $bScriptContent
-	$bScriptExists = $(Test-Path $bScript)
-	If ($bScriptExists) {
-		Write-Host -F GREEN "CREATED Astroneer backup scripts:" $bScriptName
+Try {
+	Do {
+		Wait-Event -Timeout 1
 	}
-	Else {
-		Write-Host -F RED "ERROR creating Astroneer backup scripts:" $bScriptName
+	While ($gRunning)
+}
+
+Finally
+{
+		Unregister-Event -SourceIdentifier AstroFSWChange
+		$Handler | Remove-Job
+		$sWatcher.EnableRaisingEvents = $false
+		$sWatcher.Dispose()
+}'
+		#End backup script.
+
+		Add-Content $bScript $bScriptContent
+		$bScriptExists = $(Test-Path $bScript)
+		If ($bScriptExists) {
+			Write-Host -F GREEN "CREATED Astroneer backup script:" $bScriptName
+		}
+		Else {
+			Write-Host -F RED "ERROR creating Astroneer backup script:" $bScriptName
+		}
 	}
 
 	#Check for scheduled tasks.
@@ -554,14 +553,12 @@ Until (!($isRunning)) {
 		Write-MainMenu
 	}
 }
-}
 
 
 #Check for and remove backup components. Avoid deleting backups.
 Function Disable-Backup {
 	Clear-Host
 	Get-Done
-
 	While ($bTaskExists) {
 		Write-Host -F YELLOW "DELETING Astroneer backup task:" $bTaskName
 		Unregister-ScheduledTask -TaskName "$bTaskName" -Confirm:$False | Out-Null
@@ -689,8 +686,6 @@ Function Write-Zebra([char[]]$Text) {
 #Begin the script.
 Clear-Host
 Export-Task
-Get-Lifetime
-Get-BackupCount
 Get-Done
-#Get-GameInstalled
+Get-GameInstalled
 Write-MainMenu
