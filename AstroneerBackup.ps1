@@ -545,9 +545,9 @@ $bAction = {
 	$bFull = $bDest + "$sGame"
 	$bFullExists = $(Test-Path ($bFull))
 	If (!$bFullExists) {
-		Copy-Item "$bSource\$sGame" -Destination $bFull | #Out-Null
-		Get-ChildItem $bDest | Where-Object { $_.LastWriteTime -lt $dDate } | Sort CreationTime -Desc | Select -Skip 10 | Remove-Item -Force
+		Copy-Item "$bSource\$sGame" -Destination $bFull
 	}
+	Get-ChildItem $bDest | Where-Object { $_.LastWriteTime -lt $dDate } | Sort LastWriteTime -Desc | Select -Skip 10 | Remove-Item -Force
 }
 
 #Register the event handler.
