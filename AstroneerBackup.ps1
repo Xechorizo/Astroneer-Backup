@@ -73,17 +73,17 @@ $bTaskName = "AstroneerBackup"
 Function Get-LaunchDir {
 	$sLaunched = $False
 	#Check the Steam library first.
-	If (Test-Path HKLM:\SOFTWARE\WOW6432Node\Valve\Steam) {
+	If ($(Test-Path HKLM:\SOFTWARE\WOW6432Node\Valve\Steam)) {
 		$script:SteamPath = (Get-ItemProperty -Path HKLM:\SOFTWARE\WOW6432Node\Valve\Steam -Name InstallPath).InstallPath
 	}
-	If (Test-Path "$SteamPath\steamapps\common\ASTRONEER\Astro.exe") {
+	If ($(Test-Path "$SteamPath\steamapps\common\ASTRONEER\Astro.exe")) {
 		$script:gLaunchDir = "$SteamPath\steamapps\common\ASTRONEER\Astro.exe"
 	}
-	If (Test-Path "$SteamPath\steamapps\common\ASTRONEER Early Access\Astro.exe") {
+	If ($(Test-Path "$SteamPath\steamapps\common\ASTRONEER Early Access\Astro.exe")) {
 		$script:gLaunchDir = "$SteamPath\steamapps\common\ASTRONEER Early Access\Astro.exe"
 	}
-	Else {
-	$script:gLaunchDir = (Get-Process -Name Astro -ErrorAction SilentlyContinue).Path
+	If ([bool](Get-Process -Name Astro -ErrorAction SilentlyContinue).Path) {
+		$script:gLaunchDir = (Get-Process -Name Astro -ErrorAction SilentlyContinue).Path
 	}
 	#If game process isn't found, launch it to find it.
 	If ($script:gInstalled -And (![bool]$script:gLaunchDir))  {
@@ -91,7 +91,7 @@ Function Get-LaunchDir {
 		$sLaunched = $True
 		Do {
 			#Wait for game to launch, trying to get path.
-			For ($i=0, $i -lt 10, $i++) {
+			For ($i=0; $i -le 10; $i++) {
 				$script:gLaunchDir = (Get-Process -Name Astro -ErrorAction SilentlyContinue).Path
 				Start-Sleep -Seconds 1
 			}
@@ -101,7 +101,7 @@ Function Get-LaunchDir {
 	#If script launched the game, close it. Otherwise, leave your game running.
 	If ($sLaunched -And [bool](Get-Process -Name Astro -ErrorAction SilentlyContinue)){
 		Stop-Process -Name Astro -ErrorAction SilentlyContinue
-		Stop-Process -Name Astro -ErrorAction SilentlyContinue
+		Stop-Process -Name Astro-Win64-Shipping -ErrorAction SilentlyContinue
 	}
 }
 
@@ -202,9 +202,10 @@ Function Get-GameInstalled {
 			}
 		}
 	}
+	$script:gInstalled = $True
 }
 
-#Alt-tabs, since a PowerShell window flickers even when hidden... https://github.com/Microsoft/console/issues/249
+#Alt-tabs, since a PowerShell window can steal focus... https://github.com/Microsoft/console/issues/249
 #Function Get-AltTab {
 #	[void][System.Reflection.Assembly]::LoadWithPartialName('System.Windows.Forms')
 #	[System.Windows.Forms.SendKeys]::SendWait("%{TAB}")
@@ -345,7 +346,7 @@ Function Write-Task {
 	$Action.Arguments = $Arguments
 	
 	#Needs password? https://powershell.org/forums/topic/securing-password-for-use-with-registertaskdefinition/
-	$RootFolder.RegisterTaskDefinition($bTaskName, $TaskDefinition, 6, "System", $null, 5) | Out-Null
+	$RootFolder.RegisterTaskDefinition($bTaskName, $TaskDefinition, 6, $env:USERNAME, $null, 3) | Out-Null
 }
 
 #Check for critical backup components, installing anything missing.
