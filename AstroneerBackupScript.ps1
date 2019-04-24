@@ -7,6 +7,8 @@
 #ONLY COMPATIBLE WITH STEAM VERSION
 #PROVIDED AS-IS WITH NO GUARANTEE EXPRESS OR IMPLIED
 
+#Converted with F2KO PS1 to Exe: http://www.f2ko.de/en/p2e.php
+
 #1.1 To-Do:
 #X Replace "install" and "uninstall" with "enable" and "disable"
 #X Remove Intro
