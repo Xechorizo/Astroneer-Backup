@@ -5,10 +5,6 @@
 
 Written for Astroneer 1.0.15.0 on Steam - Authored April 2019
 
-## MAKE MANUAL BACKUPS PRIOR TO USE
-## ONLY TESTED WITH STEAM VERSION
-## PROVIDED AS-IS WITH NO GUARANTEE EXPRESS OR IMPLIED
-
 ### What does this do?
 
 - This tool backs up Astroneer saves while Astroneer is running.
@@ -32,3 +28,7 @@ Written for Astroneer 1.0.15.0 on Steam - Authored April 2019
 - The task is triggered when the Astro.exe is launched.
 - The backup script copies *.savegame files when changed.
 - Backups older than the backup lifetime are deleted.
+
+## MAKE MANUAL BACKUPS PRIOR TO USE
+## ONLY TESTED WITH STEAM VERSION
+## PROVIDED AS-IS WITH NO GUARANTEE EXPRESS OR IMPLIED
