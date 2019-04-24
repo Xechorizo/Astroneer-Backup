@@ -297,7 +297,7 @@ Function Write-MainMenu {
 				Write-Host -F GREEN "                                Made by " -N; Write-Host -F RED "Xech"
 				Write-Blank(1)
 				Write-Host -F GREEN "                             Special thanks to:"
-				Write-Host -F WHITE "    Yksi, Afish, somejerk, sinuhe, Mitranium, System Era, and Paul Pepera " -N; Write-Host -F MAGENTA "<3"
+				Write-Host -F WHITE "    Yksi, Mitranium, sinuhe, Afish, somejerk, System Era, and Paul Pepera " -N; Write-Host -F MAGENTA "<3"
 				Write-Blank(1)
 				Write-Host -F YELLOW "                      Contributors/Forks: " -N; Write-Host -F RED "None yet :)"
 				Write-Blank(1)   
@@ -320,28 +320,33 @@ Function Write-MainMenu {
 Function Write-Task {
 	Get-LaunchDir
 	$Path = 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe'
-	$Arguments = '-WindowStyle Hidden -NoProfile -NoLogo -NonInteractive -ExecutionPolicy Bypass -Command ". ' + "$bConfig" + 'AstroneerBackup.ps1"'
+	$Arguments = 'powershell.exe -WindowStyle Hidden -NoProfile -NoLogo -NonInteractive -ExecutionPolicy Bypass -Command ". ' + "$bConfig" + 'AstroneerBackup.ps1"'
 	$Service = New-Object -ComObject ("Schedule.Service")
 	$Service.Connect()
 	$RootFolder = $Service.GetFolder("\")
+	
 	$TaskDefinition = $Service.NewTask(0) # TaskDefinition object https://msdn.microsoft.com/en-us/library/windows/desktop/aa382542(v=vs.85).aspx
 	$TaskDefinition.Principal.RunLevel = 1
 	$TaskDefinition.RegistrationInfo.Description = "$bTaskName"
-	$TaskDefinition.Settings.Enabled = $False
+	$TaskDefinition.Settings.Enabled = $True
 	$TaskDefinition.Settings.AllowDemandStart = $True
 	$TaskDefinition.Settings.DisallowStartIfOnBatteries = $False
 	$TaskDefinition.Settings.StopIfGoingOnBatteries = $False
 	$TaskDefinition.Settings.RunOnlyIfIdle = $False
 	$TaskDefinition.Settings.IdleSettings.StopOnIdleEnd = $False
+	
 	$Triggers = $TaskDefinition.Triggers
 	$Trigger = $Triggers.Create(0) # 0 is an event trigger https://msdn.microsoft.com/en-us/library/windows/desktop/aa383898(v=vs.85).aspx
 	$Trigger.Enabled = $True
 	$Trigger.Id = '4688' # 4688 is for process create and 4689 is for process exit
-	$Trigger.Subscription = "<QueryList><Query Id=`"0`" Path=`"Security`"><Select Path=`"Security`"> *[System[Provider[@Name=`'Microsoft-Windows-Security-Auditing`'] and Task = 13312 and (band(Keywords,9007199254740992)) and (EventID=4688)]] and  *[EventData[Data[@Name=`'NewProcessName`'] and (Data=`'" + "$gLaunchDir" +  "`')]]</Select></Query></QueryList>"
+	$Trigger.Subscription = "<QueryList><Query Id=`"0`" Path=`"Security`"><Select Path=`"Security`"> *[System[Provider[@Name=`'Microsoft-Windows-Security-Auditing`'] and Task = 13312 and (EventID=4688)]] and *[EventData[Data[@Name=`'NewProcessName`'] and (Data=`'" + "$gLaunchDir" + "`')]]</Select></Query></QueryList>"
+	
 	$Action = $TaskDefinition.Actions.Create(0)
 	$Action.Path = $Path
 	$Action.Arguments = $Arguments
-	$RootFolder.RegisterTaskDefinition($bTaskName, $TaskDefinition, 6, "$env:USERNAME", $null, 3) | Out-Null
+	
+	#Needs password? https://powershell.org/forums/topic/securing-password-for-use-with-registertaskdefinition/
+	$RootFolder.RegisterTaskDefinition($bTaskName, $TaskDefinition, 6, "System", $null, 5) | Out-Null
 }
 
 #Check for critical backup components, installing anything missing.
@@ -355,7 +360,7 @@ Function Enable-Backup {
 		New-Item -ItemType Directory -Force -Path $bDest | Out-Null
 		$bDestExists = $(Test-Path $bDest)
 		If($bDestExists) {
-				Write-Host -F GREEN "CREATED Astroneer backup folder:" $bDest
+			Write-Host -F GREEN "CREATED Astroneer backup folder:" $bDest
 		}
 		Else {
 			Write-Host -F RED "ERROR creating Astroneer backup folder:" $bDest
@@ -370,36 +375,36 @@ Function Enable-Backup {
 		New-Item -ItemType Directory -Force -Path $bConfig | Out-Null
 		$bConfigExists = $(Test-Path $bConfig)
 		If ($bConfigExists) {
-				Write-Host -F GREEN "CREATED Astroneer backup script folder:" $bConfig
+			Write-Host -F GREEN "CREATED Astroneer backup script folder:" $bConfig
 		}
 		Else {
 			Write-Host -F RED "ERROR creating Astroneer backup folder:" $bConfig
 		}
-	}
 
 	#Check for exported security policy for task auditing.
-	Get-Done
-	While (!($bTaskAuditExists)) {
-		Write-Blank(1)
-		Write-Host -F YELLOW "CREATING Astroneer backup task audit..."
-		Export-Task
-		(Get-Content $bTaskAudit).replace('AuditProcessTracking = 0','AuditProcessTracking = 1') | Out-File $bTaskAudit
-		secedit /configure /db c:\windows\security\local.sdb /cfg $bTaskAudit /areas SECURITYPOLICY | Out-Null
-		Export-Task
-		$bTaskAuditExists = $(Test-Path($bTaskAudit)) -And $($null -ne (Select-String -Path "$bTaskAudit" -Pattern 'AuditProcessTracking = 1'))
-		If ($bTaskAuditExists) {
-			Write-Host -F GREEN "CREATED Astroneer backup task audit:" $bTaskAudit
+		Get-Done
+		While (!($bTaskAuditExists)) {
 			Write-Blank(1)
-			Write-Host -N -F YELLOW "Press any key to CONTINUE..."
-			Get-Prompt
-		}
-		Else {
-			Write-Host -F RED "ERROR creating Astroneer backup task audit:" $bTaskAudit
-			Write-Blank(1)
-			Write-Host -N -F YELLOW "Press any key to CONTINUE..."
-			Get-Prompt
-			Get-Done
-			Write-MainMenu
+			Write-Host -F YELLOW "CREATING Astroneer backup task audit..."
+			Export-Task
+			(Get-Content $bTaskAudit).replace('AuditProcessTracking = 0','AuditProcessTracking = 1') | Out-File $bTaskAudit
+			secedit /configure /db c:\windows\security\local.sdb /cfg $bTaskAudit /areas SECURITYPOLICY | Out-Null
+			Export-Task
+			$bTaskAuditExists = $(Test-Path($bTaskAudit)) -And $($null -ne (Select-String -Path "$bTaskAudit" -Pattern 'AuditProcessTracking = 1'))
+			If ($bTaskAuditExists) {
+				Write-Host -F GREEN "CREATED Astroneer backup task audit:" $bTaskAudit
+				Write-Blank(1)
+				Write-Host -N -F YELLOW "Press any key to CONTINUE..."
+				Get-Prompt
+			}
+			Else {
+				Write-Host -F RED "ERROR creating Astroneer backup task audit:" $bTaskAudit
+				Write-Blank(1)
+				Write-Host -N -F YELLOW "Press any key to CONTINUE..."
+				Get-Prompt
+				Get-Done
+				Write-MainMenu
+			}
 		}
 	}
 
@@ -460,54 +465,67 @@ Function Enable-Backup {
 	Get-Done
 	While (!($bScriptExists)) {
 		Write-Host -F YELLOW "CREATING Astroneer backup scripts..."
-		Add-Content $bScript {
-			#Start backup script.
-			
-			$bSource = "$env:LOCALAPPDATA\Astro\Saved\SaveGames\"
-			$bDest = "$env:USERPROFILE\Saved Games\AstroneerBackup\"
-			$bConfig = $bDest + "Config\"
-			$bLifetimeConfig = "$bConfig" + "bLifetime.cfg"
-			[Int]$script:bLifetime = (Get-Content $bLifetimeConfig)
-			$bFilter = "*.savegame"
-			$sWatcher = New-Object IO.FileSystemWatcher $bSource, $bFilter -Property @{ 
-				EnableRaisingEvents = $true
-				IncludeSubdirectories = $false
-				NotifyFilter = [System.IO.NotifyFilters]::LastWrite
-			}
-			
-			$bAction = {
-				$cDate = Get-Date
-				$dDate = $cDate.AddDays(-$bLifetime)
-				$sGame = $Event.SourceEventArgs.Name
-				$bFull = $bDest + "$sGame"
-				$bFullExists = $(Test-Path ($bFull))
-				If (!$bFullExists) {
-					Copy-Item "$bSource\$sGame" -Destination $bFull
-					Write-Host $bFull
-					Write-Host $sGame
-					Get-ChildItem $bDest | Where-Object { $_.LastWriteTime -lt $dDate } | Remove-Item
-				}
-			}
-			
-			Function Get-Game {
-				If ([bool](Get-Process -Name Astro -ErrorAction SilentlyContinue)) {
-					Unregister-Event -SourceIdentifier AstroFSWChange -ErrorAction SilentlyContinue
-					Stop-Process $PID
-				}
-			}
+		$bScriptContent =
 
-			Register-ObjectEvent -InputObject $sWatcher -EventName Changed -SourceIdentifier AstroFSWChange -Action $bAction
-			Get-Game
-			
+			#Start backup script.
+'@
+#Stop on error.
+$ErrorActionPreference = "Stop"
+
+# Self-elevate the script, if required.
+If (!([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] ''Administrator'')) {
+	If ([int](Get-CimInstance -Class Win32_OperatingSystem | Select-Object -ExpandProperty BuildNumber) -ge 6000) {
+	 $CommandLine = "-File `"" + $MyInvocation.MyCommand.Path + "`" " + $MyInvocation.UnboundArguments
+	 Start-Process -FilePath PowerShell.exe -Verb Runas -ArgumentList $CommandLine
+	 Exit
+	}
+}
+
+$bSource = "$env:LOCALAPPDATA\Astro\Saved\SaveGames\"
+$bDest = "$env:USERPROFILE\Saved Games\AstroneerBackup\"
+$bConfig = $bDest + "Config\"
+$bLifetimeConfig = "$bConfig" + "bLifetime.cfg"
+$bLifetime = (Get-Content $bLifetimeConfig)
+$bFilter = "*.savegame"
+$isRunning = ([bool](Get-Process -Name Astro -ErrorAction SilentlyContinue))
+$sWatcher = New-Object IO.FileSystemWatcher $bSource, $bFilter -Property @{ 
+	EnableRaisingEvents = $true
+	IncludeSubdirectories = $false
+	NotifyFilter = [System.IO.NotifyFilters]::LastWrite
+}
+
+$bAction = {
+	$cDate = Get-Date
+	$dDate = $cDate.AddDays(-$bLifetime)
+	$sGame = $Event.SourceEventArgs.Name
+	$bFull = $bDest + "$sGame"
+	$bFullExists = $(Test-Path ($bFull))
+	If (!$bFullExists) {
+		Copy-Item "$bSource\$sGame" -Destination $bFull | Out-Null
+		Get-ChildItem $bDest | Where-Object { $_.LastWriteTime -lt $dDate } | Remove-Item
+	}
+}
+
+Register-ObjectEvent -InputObject $sWatcher -EventName Changed -SourceIdentifier AstroFSWChange -Action $bAction | Out-Null
+
+While ($isRunning) {
+	Start-Sleep -Seconds 1
+	$isRunning = ([bool](Get-Process -Name Astro -ErrorAction SilentlyContinue))
+	}
+Until (!($isRunning)) {
+	Unregister-Event -SourceIdentifier AstroFSWChange -ErrorAction SilentlyContinue
+	Stop-Process $PID
+}
+@'
 			#End backup script.
-		}
-		$bScriptExists = $(Test-Path $bScript)
-		If ($bScriptExists) {
-			Write-Host -F GREEN "CREATED Astroneer backup scripts:" $bScriptName
-		}
-		Else {
-			Write-Host -F RED "ERROR creating Astroneer backup scripts:" $bScriptName
-		}
+
+	Add-Content $bScript $bScriptContent
+	$bScriptExists = $(Test-Path $bScript)
+	If ($bScriptExists) {
+		Write-Host -F GREEN "CREATED Astroneer backup scripts:" $bScriptName
+	}
+	Else {
+		Write-Host -F RED "ERROR creating Astroneer backup scripts:" $bScriptName
 	}
 
 	#Check for scheduled tasks.
@@ -536,6 +554,8 @@ Function Enable-Backup {
 		Write-MainMenu
 	}
 }
+}
+
 
 #Check for and remove backup components. Avoid deleting backups.
 Function Disable-Backup {
