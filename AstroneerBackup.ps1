@@ -1,37 +1,4 @@
-﻿##[Ps1 To Exe]
-##
-##Kd3HDZOFADWE8uO1
-##Nc3NCtDXTlaDjobQ7iRL6kXRQG0yYcufhqyixpO9sePvtEU=
-##Kd3HFJGZHWLWoLaVvnQnhQ==
-##LM/RF4eFHHGZ7/K1
-##K8rLFtDXTiW5
-##OsHQCZGeTiiZ4NI=
-##OcrLFtDXTiW5
-##LM/BD5WYTiiZ49I=
-##McvWDJ+OTiiZ4tI=
-##OMvOC56PFnzN8u+VslQ=
-##M9jHFoeYB2Hc8u+VslQ=
-##PdrWFpmIG2HcofKIo2QX
-##OMfRFJyLFzWE8uK1
-##KsfMAp/KUzWI0g==
-##OsfOAYaPHGbQvbyVvnQmqxmgEiZ7Dg==
-##LNzNAIWJGmPcoKHc7Do3uAu/DDplPovL2Q==
-##LNzNAIWJGnvYv7eVvnRW9l/8TWYua9fbm7ekz5Ssnw==
-##M9zLA5mED3nfu77Q7TV64AuzAgg=
-##NcDWAYKED3nfu77Q7TV64AuzAgg=
-##OMvRB4KDHmHQvbyVvnRA90L6Vm0lLsyV+Yao04SuzOLptym5
-##P8HPFJGEFzWE8tI=
-##KNzDAJWHD2fS8u+Vgw==
-##P8HSHYKDCX3N8u+Vgw==
-##LNzLEpGeC3fMu77Ro2k3hQ==
-##L97HB5mLAnfMu77Ro2k3hQ==
-##P8HPCZWEGmaZ7/L44jBypUn3AlAubc37
-##L8/UAdDXTlaDjpbQ9QhW9l/8TWYua9e5uLWs0ZHy+vLp2w==
-##Kc/BRM3KXxU=
-##
-##
-##fd6a9f26a06ea3bc99616d4851b372ba
-#Astroneer Backup
+﻿#Astroneer Backup
 #Made by Xech on 04/2019
 #Version 1.2
 #Written for Astroneer 1.0.15.0 on 04/2019
@@ -54,12 +21,15 @@
 
 #1.2 To-Do:
 #X Consolidate tasks into one
-#X Update for Astroneer game dir change
+#X Check for Early Acces binary paths
+#X Correct escapes for task script launch
+#X Improve task game detection
 
 #Future To-Do:
 #Remove all sleeps
-#Auto update
-#Move enable operations into functions
+#Auto update and implement migration
+#Move enable operations to functions
+#Improve variables for consecutive enable/disable
 
 #Stop on error.
 $ErrorActionPreference = "Stop"
@@ -103,14 +73,17 @@ $bTaskName = "AstroneerBackup"
 Function Get-LaunchDir {
 	$sLaunched = $False
 	#Check the Steam library first.
-	If (Test-Path HKLM:\SOFTWARE\WOW6432Node\Valve\Steam) {
+	If ($(Test-Path HKLM:\SOFTWARE\WOW6432Node\Valve\Steam)) {
 		$script:SteamPath = (Get-ItemProperty -Path HKLM:\SOFTWARE\WOW6432Node\Valve\Steam -Name InstallPath).InstallPath
 	}
-	If (Test-Path "$SteamPath\steamapps\common\ASTRONEER\Astro\Binaries\Win64\Astro-Win64-Shipping.exe") {
-		$script:gLaunchDir = "$SteamPath\steamapps\common\ASTRONEER\Astro\Binaries\Win64\Astro-Win64-Shipping.exe"
+	If (Test-Path ("$SteamPath" + "steamapps\common\ASTRONEER\Astro.exe")) {
+		$script:gLaunchDir = "$SteamPath" + "\steamapps\common\ASTRONEER\Astro.exe"
 	}
-	Else {
-	$script:gLaunchDir = (Get-Process -Name Astro-Win64-Shipping -ErrorAction SilentlyContinue).Path
+	If (Test-Path ("$SteamPath" + "\steamapps\common\ASTRONEER Early Access\Astro.exe")) {
+		$script:gLaunchDir = "$SteamPath" + "\steamapps\common\ASTRONEER Early Access\Astro.exe"
+	}
+	If ([bool](Get-Process -Name Astro -ErrorAction SilentlyContinue).Path) {
+		$script:gLaunchDir = (Get-Process -Name Astro -ErrorAction SilentlyContinue).Path
 	}
 	#If game process isn't found, launch it to find it.
 	If ($script:gInstalled -And (![bool]$script:gLaunchDir))  {
@@ -118,8 +91,8 @@ Function Get-LaunchDir {
 		$sLaunched = $True
 		Do {
 			#Wait for game to launch, trying to get path.
-			For ($i=0, $i -lt 10, $i++) {
-				$script:gLaunchDir = (Get-Process -Name Astro-Win64-Shipping -ErrorAction SilentlyContinue).Path
+			For ($i=0; $i -le 10; $i++) {
+				$script:gLaunchDir = (Get-Process -Name Astro -ErrorAction SilentlyContinue).Path
 				Start-Sleep -Seconds 1
 			}
 		}
@@ -229,9 +202,10 @@ Function Get-GameInstalled {
 			}
 		}
 	}
+	$script:gInstalled = $True
 }
 
-#Alt-tabs, since a PowerShell window flickers even when hidden... https://github.com/Microsoft/console/issues/249
+#Alt-tabs, since a PowerShell window can steal focus... https://github.com/Microsoft/console/issues/249
 #Function Get-AltTab {
 #	[void][System.Reflection.Assembly]::LoadWithPartialName('System.Windows.Forms')
 #	[System.Windows.Forms.SendKeys]::SendWait("%{TAB}")
@@ -346,7 +320,7 @@ Function Write-MainMenu {
 Function Write-Task {
 	Get-LaunchDir
 	$Path = 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe'
-	$Arguments = 'powershell.exe -WindowStyle Hidden -NoProfile -NoLogo -NonInteractive -ExecutionPolicy Bypass -Command ". ' + "$bConfig" + 'AstroneerBackup.ps1"'
+	$Arguments = '-WindowStyle Hidden -NoProfile -NoLogo -NonInteractive -ExecutionPolicy Bypass -File "' + "$bConfig" + 'AstroneerBackup.ps1"'
 	$Service = New-Object -ComObject ("Schedule.Service")
 	$Service.Connect()
 	$RootFolder = $Service.GetFolder("\")
@@ -372,7 +346,7 @@ Function Write-Task {
 	$Action.Arguments = $Arguments
 	
 	#Needs password? https://powershell.org/forums/topic/securing-password-for-use-with-registertaskdefinition/
-	$RootFolder.RegisterTaskDefinition($bTaskName, $TaskDefinition, 6, "System", $null, 5) | Out-Null
+	$RootFolder.RegisterTaskDefinition($bTaskName, $TaskDefinition, 6, $env:USERNAME, $null, 3) | Out-Null
 }
 
 #Check for critical backup components, installing anything missing.
@@ -495,7 +469,9 @@ Function Enable-Backup {
 
 		#Start backup script.
 
-'#Stop on error.
+'#Task audit 4688 invokes backup action.
+
+#Stop on error.
 $ErrorActionPreference = "Stop"
 
 # Self-elevate the script, if required.
@@ -507,19 +483,22 @@ If (!([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]
 	}
 }
 
+#Declare paths and backup lifetime.
 $bSource = "$env:LOCALAPPDATA\Astro\Saved\SaveGames\"
 $bDest = "$env:USERPROFILE\Saved Games\AstroneerBackup\"
 $bConfig = $bDest + "Config\"
 $bLifetimeConfig = "$bConfig" + "bLifetime.cfg"
 $bLifetime = (Get-Content $bLifetimeConfig)
 $bFilter = "*.savegame"
-$gRunning = ([bool](Get-Process -Name Astro-Win64-Shipping -ErrorAction SilentlyContinue))
+
+#Begin watcher.
 $sWatcher = New-Object IO.FileSystemWatcher $bSource, $bFilter -Property @{ 
 	EnableRaisingEvents = $true
 	IncludeSubdirectories = $false
 	NotifyFilter = [System.IO.NotifyFilters]::LastWrite
 }
 
+#Declare event handler actions.
 $bAction = {
 	$cDate = Get-Date
 	$dDate = $cDate.AddDays(-$bLifetime)
@@ -532,23 +511,27 @@ $bAction = {
 	}
 }
 
+#Register the event handler.
 $Handler = . {
-Register-ObjectEvent -InputObject $sWatcher -EventName Changed -SourceIdentifier AstroFSWChange -Action $bAction | Out-Null
+	Register-ObjectEvent -InputObject $sWatcher -EventName Changed -SourceIdentifier AstroFSWChange -Action $bAction | Out-Null
 }
 
+#Wait for the game to stop.
 Try {
+	([bool](Get-Process -Name Astro -ErrorAction SilentlyContinue))
 	Do {
 		Wait-Event -Timeout 1
 	}
-	While ($gRunning)
+	Until (![bool](Get-Process -Name Astro -ErrorAction SilentlyContinue))
 }
 
+#Unregister and dispose of active handlers and jobs.
 Finally
 {
-		Unregister-Event -SourceIdentifier AstroFSWChange
-		$Handler | Remove-Job
-		$sWatcher.EnableRaisingEvents = $false
-		$sWatcher.Dispose()
+	Unregister-Event -SourceIdentifier AstroFSWChange
+	$Handler | Remove-Job
+	$sWatcher.EnableRaisingEvents = $false
+	$sWatcher.Dispose()
 }'
 		#End backup script.
 
@@ -654,9 +637,9 @@ Function Disable-Backup {
 		Write-Host -F YELLOW "CHECKING for Astroneer backups: $bDest*.savegame"
 		While ($(Get-ChildItem $bDest -Filter *.savegame).Count -gt 0) {
 			Do {
-				Write-Host -F RED "WARNING - ASTRONEER BACKUPS EXIST:" $bDest
+				Write-Host -F RED "WARNING - ASTRONEER BACKUPS EXIST: $bDest*.savegame"
 				Write-Blank(1)
-				Write-Host -N -F RED "THIS CANNOT BE UNDONE: Would you like to DELETE them Y/(N)?"
+				Write-Host -N -F RED "THIS CANNOT BE UNDONE: "; Write-Host -N -F YELLOW "Would you like to DELETE backups Y/(N)?"
 				$Choice = Read-Host
 				$Ok = $Choice -match '^[yn]+$|^$'
 				If (-not $Ok) {
@@ -676,7 +659,6 @@ Function Disable-Backup {
 					Write-MainMenu
 				}
 				"N|^$" {
-					Clear-Host
 					Write-Host -F GREEN "ASTRONEER BACKUP FOLDER PRESERVED:" $bDest
 					Write-Blank(1)
 					Write-Host -N -F YELLOW "Press any key to CONTINUE..."
@@ -704,6 +686,7 @@ Function Disable-Backup {
 		Get-Prompt
 		Write-MainMenu 
 	}
+	Write-MainMenu
 }
 
 #HAIL LORD ZEBRA
