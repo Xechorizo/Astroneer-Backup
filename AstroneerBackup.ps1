@@ -1,10 +1,10 @@
 ﻿#Astroneer Backup
-#Made by Xech on 04/2019
+#Made by Xech
 #Version 1.2
-#Written for Astroneer 1.0.15.0 on 04/2019
+#Written for Astroneer 1.0.15.0 on Steam - Authored April 2019
 
 #MAKE MANUAL BACKUPS PRIOR TO USE
-#ONLY COMPATIBLE WITH STEAM VERSION
+#ONLY TESTED WITH STEAM VERSION
 #PROVIDED AS-IS WITH NO GUARANTEE EXPRESS OR IMPLIED
 
 #Converted with F2KO PS1 to Exe: http://www.f2ko.de/en/p2e.php
@@ -25,12 +25,16 @@
 #X Correct escapes for task script launch
 #X Improve task game detection
 #X Improve elevation checks
+#X Improve Readme
 
 #Future To-Do:
 #Remove all sleeps
 #Auto update and implement migration
 #Move enable operations to functions
 #Improve variables for consecutive enable/disable
+#Test with Windows Store version
+#Consider backup throttle
+#Consider disk space check
 
 #Stop on error.
 #$ErrorActionPreference = "Stop"
@@ -287,14 +291,38 @@ Function Write-MainMenu {
 				}
 			}
 			"4" {
-				Write-Host -F GREEN "Written for Astroneer 1.0.15.0 on Steam"
-				Write-Host -F GREEN "Authored April 2019"
+				Write-Host -F GREEN "Written for Astroneer 1.0.15.0 on Steam - Authored April 2019"
+				Write-Host -F YELLOW "(1/3) What does this do?"
 				Write-Blank(1)
-				Write-Host -F WHITE "This script creates two backup scripts."
-				Write-Host -F WHITE "Each script corresponds to a scheduled task."
-				Write-Host -F WHITE "Tasks are triggered only when the game is running."
-				Write-Host -F WHITE "Backups are triggered by auditing save change events."
-				Write-Host -F WHITE "Backups are deleted when older than the backup lifetime."
+				Write-Host -F WHITE "This tool backs up Astroneer saves while Astroneer is running."
+				Write-Host -F WHITE "When Astroneer closes, it stops watching for changes."
+				Write-Host -F WHITE "You can choose how long you want backups to be kept."
+				Write-Host -F WHITE "The Astroneer install is not changed in any way by this tool."
+				Write-Host -F WHITE "When saves are backed up, they're copied here: " -N; Write-Host -F YELLOW "$bDest"
+				Write-Blank(1)
+				Write-Host -N -F YELLOW "Press any key to CONTINUE..."
+				Get-Prompt
+				Clear-Host
+				Write-Host -F GREEN "Written for Astroneer 1.0.15.0 on Steam - Authored April 2019"
+				Write-Host -F YELLOW "(2/3) How do I use it?"
+				Write-Blank(1)
+				Write-Host -F WHITE "To enable backup, type 1 and Enter at the Main Menu."
+				Write-Host -F WHITE "To disable backup, type 2 and Enter at the Main Menu."
+				Write-Host -F White "To open the backup folder, type 3 and Enter at the Main Menu."
+				Write-Host -F WHITE "Backups are kept for 30 days by default."
+				Write-Host -F YELLOW "Backup will only work if this appears in the Main Menu: " -N; Write-Host -F WHITE "Backup ENABLED: " -N; Write-Host -F GREEN "True"
+				Write-Blank(1)
+				Write-Host -N -F YELLOW "Press any key to CONTINUE..."
+				Get-Prompt
+				Clear-Host
+				Write-Host -F GREEN "Written for Astroneer 1.0.15.0 on Steam - Authored April 2019"
+				Write-Host -F YELLOW "(3/3) How does it work?"
+				Write-Blank(1)
+				Write-Host -F WHITE "A backup folder and backup script are created."
+				Write-Host -F WHITE "A scheduled task is created that invokes the script."
+				Write-Host -F WHITE "The task is triggered when the Astro.exe is launched."
+				Write-Host -F WHITE "The backup script copies .savegame files when changed."
+				Write-Host -F WHITE "Backups older than the backup lifetime are deleted."
 				Write-Blank(1)
 				Write-Host -N -F YELLOW "Press any key to CONTINUE..."
 				Get-Prompt
