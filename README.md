@@ -18,7 +18,7 @@ Written for Astroneer 1.0.15.0 on Steam - Authored April 2019
 - To enable backup, type 1 and Enter at the Main Menu.
 - To disable backup, type 2 and Enter at the Main Menu.
 - To open the backup folder, type 3 and Enter at the Main Menu.
-- Backups are kept for 30 days by default.
+- Backups are kept for 30 days by default. 10 backups are always kept.
 - Backup will only work if this appears in the Main Menu: **Backup ENABLED: True**
 
 ## How does it work?
