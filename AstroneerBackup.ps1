@@ -21,12 +21,15 @@
 
 #1.2 To-Do:
 #X Consolidate tasks into one
-#X Update for Astroneer game dir change
+#X Check for Early Acces binary paths
+#X Correct escapes for task script launch
+#X Improve task game detection
 
 #Future To-Do:
 #Remove all sleeps
-#Auto update and forward-compatible migration
-#Move enable operations into functions
+#Auto update and implement migration
+#Move enable operations to functions
+#Improve variables for consecutive enable/disable
 
 #Stop on error.
 $ErrorActionPreference = "Stop"
@@ -75,6 +78,9 @@ Function Get-LaunchDir {
 	}
 	If (Test-Path "$SteamPath\steamapps\common\ASTRONEER\Astro.exe") {
 		$script:gLaunchDir = "$SteamPath\steamapps\common\ASTRONEER\Astro.exe"
+	}
+	If (Test-Path "$SteamPath\steamapps\common\ASTRONEER Early Access\Astro.exe") {
+		$script:gLaunchDir = "$SteamPath\steamapps\common\ASTRONEER Early Access\Astro.exe"
 	}
 	Else {
 	$script:gLaunchDir = (Get-Process -Name Astro -ErrorAction SilentlyContinue).Path
