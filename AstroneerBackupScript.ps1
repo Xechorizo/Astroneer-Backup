@@ -1,6 +1,6 @@
-﻿#Astroneer Savegame Backup Installer
+﻿#Astroneer Backup
 #Made by Xech on 04/2019
-#Version 1.1
+#Version 1.2
 #Written for Astroneer 1.0.15.0 on 04/2019
 
 #MAKE MANUAL BACKUPS PRIOR TO USE
@@ -208,8 +208,8 @@ Function Get-GameInstalled {
 Function Write-MainMenu {
 	Clear-Host
 	Get-Done
-	Write-Host -F GREEN "= = = = = = = = = = = = = = Astroneer Backup Script = = = = = = = = = = = = = ="
-	Write-Host -F GREEN "                                  Version 1.1"
+	Write-Host -F GREEN "= = = = = = = = = = = = = = = = Astroneer Backup = = = = = = = = = = = = = = = = ="
+	Write-Host -F GREEN "                                  Version 1.2"
 	Write-Blank(1)
 	Write-Host -F WHITE "Backup LOCATION: " -N; Write-Host -F YELLOW "$bDest"
 	Write-Host -F WHITE "Backup LIFETIME: " -N; Write-Host -F YELLOW "$bLifetime" -N; Write-Host -F WHITE " Days"
@@ -286,15 +286,15 @@ Function Write-MainMenu {
 			}
 			"5" {
 				Clear-Host
-				Write-Host -F GREEN "= = = = = = = = = = = = = = Astroneer Backup Script = = = = = = = = = = = = = ="
-				Write-Host -F GREEN "                                Made by " -N; Write-Host -F RED "Xech"
+				Write-Host -F GREEN "= = = = = = = = = = = = = = = = Astroneer Backup = = = = = = = = = = = = = = = = ="
+				Write-Host -F GREEN "                                  Made by " -N; Write-Host -F RED "Xech"
 				Write-Blank(1)
-				Write-Host -F GREEN "                             Special thanks to:"
-				Write-Host -F WHITE "    Yksi, Mitranium, sinuhe, Afish, somejerk, System Era, and Paul Pepera " -N; Write-Host -F MAGENTA "<3"
+				Write-Host -F GREEN "                               Special thanks to:"
+				Write-Host -F WHITE "      Yksi, Mitranium, sinuhe, Afish, somejerk, System Era, and Paul Pepera " -N; Write-Host -F MAGENTA "<3"
 				Write-Blank(1)
-				Write-Host -F YELLOW "                      Contributors/Forks: " -N; Write-Host -F RED "None yet :)"
+				Write-Host -F YELLOW "                         Contributors/Forks: " -N; Write-Host -F RED "None yet :)"
 				Write-Blank(1)   
-				Write-Host -F YELLOW "                              "-N; Write-Zebra "HAIL LORD ZEBRA"
+				Write-Host -F YELLOW "                                "-N; Write-Zebra "HAIL LORD ZEBRA"
 				Write-Blank(2)
 				Write-Host -N -F YELLOW "Press any key to CONTINUE..."
 				Get-Prompt
