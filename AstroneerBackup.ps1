@@ -520,7 +520,7 @@ $Handler = . {
 Try {
 	([bool](Get-Process -Name Astro -ErrorAction SilentlyContinue))
 	Do {
-		Wait-Event -Timeout 30
+		Wait-Event -Timeout 1
 	}
 	Until (![bool](Get-Process -Name Astro -ErrorAction SilentlyContinue))
 }
