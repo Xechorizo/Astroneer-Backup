@@ -1,22 +1,20 @@
-# Download Version 1.2: https://github.com/Xechorizo/Astroneer-Backup/blob/master/AstroneerBackup.exe
 
-Astroneer Backup
+# [Download Astroneer Backup Version 1.2](https://github.com/Xechorizo/Astroneer-Backup/blob/master/AstroneerBackup.exe)
 
-Made by Xech
+#### Made by Xech
 
 Written for Astroneer 1.0.15.0 on Steam
 
 Authored April 2019
 
 Back up Astroneer UE4 savegames via PowerShell and scheduled tasks.
-This script creates two backup scripts.
-Each script corresponds to a scheduled task.
-Tasks are triggered only when the game is running.
-Backups are triggered by auditing save change events.
-Backups are deleted when older than the backup lifetime.
+- This script creates two backup scripts.
+- Each script corresponds to a scheduled task.
+- Tasks are triggered only when the game is running.
+- Backups are triggered by auditing save change events.
+- Backups are deleted when older than the backup lifetime.
 
-MAKE MANUAL BACKUPS PRIOR TO USE
 
-ONLY COMPATIBLE WITH STEAM VERSION
-
-PROVIDED AS-IS WITH NO GUARANTEE EXPRESS OR IMPLIED
+#### MAKE MANUAL BACKUPS PRIOR TO USE
+#### ONLY TESTED WITH STEAM VERSION
+#### PROVIDED AS-IS WITH NO GUARANTEE EXPRESS OR IMPLIED
