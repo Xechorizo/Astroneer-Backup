@@ -31,9 +31,6 @@
 #Move enable operations to functions
 #Improve variables for consecutive enable/disable
 
-#Stop on error.
-$ErrorActionPreference = "Stop"
-
 # Self-elevate the script, if required.
 If (!([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] 'Administrator')) {
 	If ([int](Get-CimInstance -Class Win32_OperatingSystem | Select-Object -ExpandProperty BuildNumber) -ge 6000) {
@@ -470,9 +467,6 @@ Function Enable-Backup {
 		#Start backup script.
 
 '#Task audit 4688 invokes backup action.
-
-#Stop on error.
-$ErrorActionPreference = "Stop"
 
 # Self-elevate the script, if required.
 If (!([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] ''Administrator'')) {
