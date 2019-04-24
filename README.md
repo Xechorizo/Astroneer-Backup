@@ -1,6 +1,6 @@
 Astroneer Backup Script
 
-Version 1.1
+Version 1.2
 
 Made by Xech
 
@@ -8,7 +8,7 @@ Written for Astroneer 1.0.15.0 on Steam
 
 Authored April 2019
 
-Backs up Astroneer UE4 savegames using PowerShell and scheduled tasks
+Back up Astroneer UE4 savegames via PowerShell and scheduled tasks.
 This script creates two backup scripts.
 Each script corresponds to a scheduled task.
 Tasks are triggered only when the game is running.
