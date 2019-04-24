@@ -76,11 +76,11 @@ Function Get-LaunchDir {
 	If ($(Test-Path HKLM:\SOFTWARE\WOW6432Node\Valve\Steam)) {
 		$script:SteamPath = (Get-ItemProperty -Path HKLM:\SOFTWARE\WOW6432Node\Valve\Steam -Name InstallPath).InstallPath
 	}
-	If ($(Test-Path "$SteamPath\steamapps\common\ASTRONEER\Astro.exe")) {
-		$script:gLaunchDir = "$SteamPath\steamapps\common\ASTRONEER\Astro.exe"
+	If (Test-Path ("$SteamPath" + "steamapps\common\ASTRONEER\Astro.exe")) {
+		$script:gLaunchDir = "$SteamPath" + "\steamapps\common\ASTRONEER\Astro.exe"
 	}
-	If ($(Test-Path "$SteamPath\steamapps\common\ASTRONEER Early Access\Astro.exe")) {
-		$script:gLaunchDir = "$SteamPath\steamapps\common\ASTRONEER Early Access\Astro.exe"
+	If (Test-Path ("$SteamPath" + "\steamapps\common\ASTRONEER Early Access\Astro.exe")) {
+		$script:gLaunchDir = "$SteamPath" + "\steamapps\common\ASTRONEER Early Access\Astro.exe"
 	}
 	If ([bool](Get-Process -Name Astro -ErrorAction SilentlyContinue).Path) {
 		$script:gLaunchDir = (Get-Process -Name Astro -ErrorAction SilentlyContinue).Path
@@ -686,6 +686,7 @@ Function Disable-Backup {
 		Get-Prompt
 		Write-MainMenu 
 	}
+	Write-MainMenu
 }
 
 #HAIL LORD ZEBRA
