@@ -1,5 +1,5 @@
 
-# [Download Astroneer Backup Version 1.2](https://github.com/Xechorizo/Astroneer-Backup/blob/master/AstroneerBackup.exe)
+# [Download Astroneer Backup Version 1.2](https://github.com/Xechorizo/Astroneer-Backup/blob/dev/AstroneerBackup.exe)
 ###### [EXE Clean Scan](https://www.virustotal.com/latest-scan/https://github.com/Xechorizo/Astroneer-Backup/blob/dev/AstroneerBackup.exe)
 ###### [PS1 Clean Scan](https://www.virustotal.com/latest-scan/https://github.com/Xechorizo/Astroneer-Backup/blob/dev/AstroneerBackup.ps1)
 #### Made by Xech
@@ -16,6 +16,9 @@ Written for Astroneer 1.0.15.0 on Steam - Authored April 2019
 
 ## How do I use it?
 
+- Astroneer Backup is best run from the [.EXE](https://github.com/Xechorizo/Astroneer-Backup/blob/dev/AstroneerBackup.exe).
+- The .PS1 is included if you'd like to examine the code.
+- It must be run as **Administrator**. It will try to ensure this.
 - To enable backup, type 1 and Enter at the Main Menu.
 - To disable backup, type 2 and Enter at the Main Menu.
 - To open the backup folder, type 3 and Enter at the Main Menu.
