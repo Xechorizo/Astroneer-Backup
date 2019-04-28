@@ -9,7 +9,7 @@
 
 #Converted with F2KO PS1 to Exe: http://www.f2ko.de/en/p2e.php
 
-#1.1 To-Do:
+#1.1 Changelog:
 #X Replace "install" and "uninstall" with "enable" and "disable"
 #X Remove Intro
 #X Title the MainMenu
@@ -19,7 +19,7 @@
 #X Add configurable backup timeframe
 #X Package .ps1 as .exe
 
-#1.2 To-Do:
+#1.2 Changelog:
 #X Consolidate tasks into one
 #X Check for Early Acces binary paths
 #X Correct escapes for task script launch
@@ -27,6 +27,10 @@
 #X Improve elevation checks
 #X Improve Readme
 #X 10 backups are always kept.
+
+#1.3 Changelog
+#X Fix for default launch directory path
+#X Added support for legacy .sav extension
 
 #Future To-Do:
 #Remove all sleeps
@@ -104,7 +108,7 @@ Function Get-LaunchDir {
 	If ($(Test-Path HKLM:\SOFTWARE\WOW6432Node\Valve\Steam)) {
 		$script:SteamPath = (Get-ItemProperty -Path HKLM:\SOFTWARE\WOW6432Node\Valve\Steam -Name InstallPath).InstallPath
 	}
-	If (Test-Path ("$SteamPath" + "steamapps\common\ASTRONEER\Astro.exe")) {
+	If (Test-Path ("$SteamPath" + "\steamapps\common\ASTRONEER\Astro.exe")) {
 		$script:gLaunchDir = "$SteamPath" + "\steamapps\common\ASTRONEER\Astro.exe"
 	}
 	If (Test-Path ("$SteamPath" + "\steamapps\common\ASTRONEER Early Access\Astro.exe")) {
@@ -138,7 +142,7 @@ Function Get-Done {
 	$script:bSourceExists = $(Test-Path $bSource)
 	$script:bDestExists = $(Test-Path $bDest)
 	If ($bDestExists) {
-		$script:bCount = (Get-ChildItem $bDest -Filter *.savegame).Count
+		$script:bCount = (Get-ChildItem $bDest -Filter *.sav*).Count
 	}
 	Else {
 		$script:bCount = 0
@@ -528,7 +532,7 @@ $bDest = "$env:USERPROFILE\Saved Games\AstroneerBackup\"
 $bConfig = $bDest + "Config\"
 $bLifetimeConfig = "$bConfig" + "bLifetime.cfg"
 $bLifetime = (Get-Content $bLifetimeConfig)
-$bFilter = "*.savegame"
+$bFilter = "*.sav*"
 
 #Begin watcher.
 $sWatcher = New-Object IO.FileSystemWatcher $bSource, $bFilter -Property @{ 
@@ -673,10 +677,10 @@ Function Disable-Backup {
 	While ($bDestExists) {
 		Clear-Host
 		Get-Done
-		Write-Host -F YELLOW "CHECKING for Astroneer backups: $bDest*.savegame"
-		While ($(Get-ChildItem $bDest -Filter *.savegame).Count -gt 0) {
+		Write-Host -F YELLOW "CHECKING for Astroneer backups: $bDest*.sav*"
+		While ($(Get-ChildItem $bDest -Filter *.sav*).Count -gt 0) {
 			Do {
-				Write-Host -F RED "WARNING - ASTRONEER BACKUPS EXIST: $bDest*.savegame"
+				Write-Host -F RED "WARNING - ASTRONEER BACKUPS EXIST: $bDest*.sav*"
 				Write-Blank(1)
 				Write-Host -N -F RED "THIS CANNOT BE UNDONE: "; Write-Host -N -F YELLOW "Would you like to DELETE backups Y/(N)?"
 				$Choice = Read-Host
@@ -707,8 +711,8 @@ Function Disable-Backup {
 			}
 		}
 		Get-Done
-		If ($bDestExists -And ($(Get-ChildItem $bDest -Filter *.savegame).Count -eq 0)) {
-			Write-Host -F GREEN "NO Astroneer backups found: $bDest*.savegame"
+		If ($bDestExists -And ($(Get-ChildItem $bDest -Filter *.sav*).Count -eq 0)) {
+			Write-Host -F GREEN "NO Astroneer backups found: $bDest*.sav*"
 			Write-Blank(1)
 			Write-Host -F YELLOW "DELETING empty Astroneer backup folder:" $bDest
 			Remove-Item -Path $bDest -Force -Recurse -Confirm:$False | Out-Null
