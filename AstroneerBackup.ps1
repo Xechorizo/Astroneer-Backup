@@ -7,8 +7,6 @@
 #ONLY TESTED WITH STEAM VERSION
 #PROVIDED AS-IS WITH NO GUARANTEE EXPRESS OR IMPLIED
 
-#Converted with F2KO PS1 to Exe: http://www.f2ko.de/en/p2e.php
-
 #1.1 Changelog:
 #X Replace "install" and "uninstall" with "enable" and "disable"
 #X Remove Intro
@@ -34,9 +32,9 @@
 #X Supports experimental branch
 #X Improved AV scan results
 #X Disabled automatic elevation
+#X Updated icon
 
 #Future To-Do:
-#Remove all sleeps
 #Auto update and implement migration
 #Move enable operations to functions
 #Improve variables for consecutive enable/disable
