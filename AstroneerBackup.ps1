@@ -1,7 +1,7 @@
 ﻿#Astroneer Backup
 #Made by Xech
-#Version 1.2
-#Written for Astroneer 1.0.15.0 on Steam - Authored April 2019
+#Version 1.3
+#Written for Astroneer 1.0.15.0 on Steam - Authored May 2019
 
 #MAKE MANUAL BACKUPS PRIOR TO USE
 #ONLY TESTED WITH STEAM VERSION
@@ -31,6 +31,9 @@
 #1.3 Changelog
 #X Fix for default launch directory path
 #X Added support for legacy .sav extension
+#X Supports experimental branch
+#X Improved AV scan results
+#X Disabled automatic elevation
 
 #Future To-Do:
 #Remove all sleeps
@@ -58,19 +61,21 @@ Function Write-Blank($Count) {
 }
 
 #Self-elevate the script, if required.
-If (!([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] 'Administrator')) {
-	If ([int](Get-CimInstance -Class Win32_OperatingSystem | Select-Object -ExpandProperty BuildNumber) -ge 6000) {
-	 $CommandLine = "-File `"" + $MyInvocation.MyCommand.Path + "`" " + $MyInvocation.UnboundArguments
-	 Start-Process -FilePath PowerShell.exe -Verb Runas -ArgumentList $CommandLine
-	 Exit
-	}
-}
+# If (!([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] 'Administrator')) {
+# 	If ([int](Get-CimInstance -Class Win32_OperatingSystem | Select-Object -ExpandProperty BuildNumber) -ge 6000) {
+# 	 $CommandLine = "-File `"" + $MyInvocation.MyCommand.Path + "`" " + $MyInvocation.UnboundArguments
+# 	 Start-Process -FilePath PowerShell.exe -Verb Runas -ArgumentList $CommandLine
+# 	 Exit
+# 	}
+# }
 
 #Advise if elevation is needed.
 $cPrinc = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
 If (!$cPrinc.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
 	Clear-Host
-	Write-Host -F RED "Administrator privileges are required..."
+	Write-Host -F RED "Administrator privileges are REQUIRED."
+	Write-Blank(1)
+	Write-Host -F RED "Right-click the executable and choose `"Run as administrator`"."
 	Get-Prompt
 	Exit
 }
@@ -235,7 +240,7 @@ Function Write-MainMenu {
 	Clear-Host
 	Get-Done
 	Write-Host -F GREEN "= = = = = = = = = = = = = = = = Astroneer Backup = = = = = = = = = = = = = = = = ="
-	Write-Host -F GREEN "                                  Version 1.2"
+	Write-Host -F GREEN "                                  Version 1.3"
 	Write-Blank(1)
 	Write-Host -F WHITE "Backup LOCATION: " -N; Write-Host -F YELLOW "$bDest"
 	Write-Host -F WHITE "Backup LIFETIME: " -N; Write-Host -F YELLOW "$bLifetime" -N; Write-Host -F WHITE " Days"
@@ -296,7 +301,7 @@ Function Write-MainMenu {
 				}
 			}
 			"4" {
-				Write-Host -F GREEN "Written for Astroneer 1.0.15.0 on Steam - Authored April 2019"
+				Write-Host -F GREEN "Written for Astroneer 1.0.15.0 on Steam - Authored May 2019"
 				Write-Host -F YELLOW "(1/3) What does this do?"
 				Write-Blank(1)
 				Write-Host -F WHITE "This tool backs up Astroneer saves while Astroneer is running."
@@ -308,7 +313,7 @@ Function Write-MainMenu {
 				Write-Host -N -F YELLOW "Press any key to CONTINUE..."
 				Get-Prompt
 				Clear-Host
-				Write-Host -F GREEN "Written for Astroneer 1.0.15.0 on Steam - Authored April 2019"
+				Write-Host -F GREEN "Written for Astroneer 1.0.15.0 on Steam - Authored May 2019"
 				Write-Host -F YELLOW "(2/3) How do I use it?"
 				Write-Blank(1)
 				Write-Host -F WHITE "To enable backup, type 1 and Enter at the Main Menu."
@@ -320,7 +325,7 @@ Function Write-MainMenu {
 				Write-Host -N -F YELLOW "Press any key to CONTINUE..."
 				Get-Prompt
 				Clear-Host
-				Write-Host -F GREEN "Written for Astroneer 1.0.15.0 on Steam - Authored April 2019"
+				Write-Host -F GREEN "Written for Astroneer 1.0.15.0 on Steam - Authored May 2019"
 				Write-Host -F YELLOW "(3/3) How does it work?"
 				Write-Blank(1)
 				Write-Host -F WHITE "A backup folder and backup script are created."
