@@ -69,7 +69,7 @@ Written for Astroneer 1.0.15.0 on Steam -Authored May 2019
 ### *ONLY TESTED WITH STEAM VERSION*
 ### *PROVIDED AS-IS WITH NO GUARANTEE EXPRESS OR IMPLIED*
 
-####1.1 Changelog:
+#### 1.1 Changelog:
 - Replace "install" and "uninstall" with "enable" and "disable"
 - Remove Intro
 - Title the MainMenu
@@ -79,7 +79,7 @@ Written for Astroneer 1.0.15.0 on Steam -Authored May 2019
 - Add configurable backup timeframe
 - Package .ps1 as .exe
 
-####1.2 Changelog:
+#### 1.2 Changelog:
 - Consolidate tasks into one
 - Check for Early Acces binary paths
 - Correct escapes for task script launch
@@ -88,7 +88,7 @@ Written for Astroneer 1.0.15.0 on Steam -Authored May 2019
 - Improve Readme
 - 10 backups are always kept.
 
-####1.3 Changelog
+#### 1.3 Changelog
 - Fix for default launch directory path
 - Added support for legacy .sav extension
 - Supports experimental branch
@@ -96,10 +96,10 @@ Written for Astroneer 1.0.15.0 on Steam -Authored May 2019
 - Disabled automatic elevation
 - Updated icon
 
-#Future To-Do:
-#Auto update and implement migration
-#Move enable operations to functions
-#Improve variables for consecutive enable/disable
-#Test with Windows Store version
-#Consider backup throttle
-#Consider disk space check
+#### Future To-Do:
+- Auto update and implement migration
+- Move enable operations to functions
+- Improve variables for consecutive enable/disable
+- Test with Windows Store version
+- Consider backup throttle
+- Consider disk space check
