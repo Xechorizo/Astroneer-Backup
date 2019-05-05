@@ -1,5 +1,5 @@
 
-# [Download Astroneer Backup Version 1.3](https://github.com/Xechorizo/Astroneer-Backup/blob/dev/AstroneerBackup.exe)
+# [Download Astroneer Backup Version 1.3](AstroneerBackup.exe)
 ###### [EXE Clean Scan](https://www.virustotal.com/en/file/9cda24dbb8118d1a4c46b2d619c745b20d17eecfb407830da9740073bcacf23f/analysis/1556964473/)
 ###### [PS1 Clean Scan](https://www.virustotal.com/en/file/29816d6b05c2e8fc1c58936a4e88b4fe75daa0090f99c07128da0ba80fe31653/analysis/1556964461/)
 ### Made by Xech
@@ -11,7 +11,7 @@
 - When Astroneer closes, it stops watching for changes.
 - You can choose how long you want backups to be kept.
 - The Astroneer install is not changed in any way by this tool.
-- When saves are backed up, they're copied here: [%userprofile%\Saved Games\AstroneerBackup][Test](file://%userprofile%/Saved Games/AstroneerBackup)
+- When saves are backed up, they're copied here: [%userprofile%\Saved Games\AstroneerBackup](file:///%userprofile%/Saved Games/AstroneerBackup)
 
 ### How do I use it?
 - Astroneer Backup is best run from the [.EXE](https://www.virustotal.com/en/file/660b07cad89b8201902c70f7738154b12c87a211c0173288b863d757e0f496b5/analysis/1556963295/).
