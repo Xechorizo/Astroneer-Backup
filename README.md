@@ -86,20 +86,21 @@ Written for Astroneer 1.0.15.0 on Steam -Authored May 2019
 - Improve task game detection
 - Improve elevation checks
 - Improve Readme
-- 10 backups are always kept.
+- 10 backups are always kept
 
-#### 1.3 Changelog
-- Fix for default launch directory path
-- Added support for legacy .sav extension
-- Supports experimental branch
-- Improved AV scan results
-- Disabled automatic elevation
-- Updated icon
+#### 1.3 Changelog:
+- Added Astroneer Backup upgrade functionality
+- Added support for legacy, future, and EXO Flight Test versions
+- Added 10 backups per save, per version, per lifetime
+- Added new icon
+- Improved EXE packaging and security
+- Improved loop logic and performance
+- Improved launch directory logic
+- Removed changelog and consolidated versioning within the script
 
 #### Future To-Do:
-- Auto update and implement migration
-- Move enable operations to functions
-- Improve variables for consecutive enable/disable
-- Test with Windows Store version
-- Consider backup throttle
-- Consider disk space check
+- Automatically update
+- Add support for Microsoft Store version
+- Add backup throttle
+- Add disk space check
+- Move enable/disable operations to functions
