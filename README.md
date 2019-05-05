@@ -1,7 +1,11 @@
 
 # [Download Astroneer Backup Version 1.3](AstroneerBackup.exe)
-###### [EXE Clean Scan](https://www.virustotal.com/en/file/7d3032b8169bb5d41106db408d10317ed70199e2fa7702b8f94e2b31135961c0/analysis/1557043972/)
-###### [PS1 Clean Scan](https://www.virustotal.com/en/file/56923c5ba052420a83563323ae00aa710d01ffc8e96937ac29f4753cc25ff3dd/analysis/1557043980/)
+[EXE Clean Scan](https://www.virustotal.com/en/file/7d3032b8169bb5d41106db408d10317ed70199e2fa7702b8f94e2b31135961c0/analysis/1557043972/)
+SHA256: 7D3032B8169BB5D41106DB408D10317ED70199E2FA7702B8F94E2B31135961C0
+
+[PS1 Clean Scan](https://www.virustotal.com/en/file/56923c5ba052420a83563323ae00aa710d01ffc8e96937ac29f4753cc25ff3dd/analysis/1557043980/)
+SHA256: 56923C5BA052420A83563323AE00AA710D01FFC8E96937AC29F4753CC25FF3DD
+
 ### Made by Xech
 - Written for Astroneer 1.0.15.0 on Steam - Authored May 2019
 
