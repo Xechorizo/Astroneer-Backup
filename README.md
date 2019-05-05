@@ -33,11 +33,8 @@ Written for Astroneer 1.0.15.0 on Steam - Authored May 2019
 -The backup script copies .savegame files when changed.
 -Backups older than the backup lifetime are deleted.
 
-### *MAKE MANUAL BACKUPS PRIOR TO USE*
-### *ONLY TESTED WITH STEAM VERSION*
-### *PROVIDED AS-IS WITH NO GUARANTEE EXPRESS OR IMPLIED*
-
-#### 1.1 Changelog:
+## Change Log
+#### 1.1
 - Replace "install" and "uninstall" with "enable" and "disable"
 - Remove Intro
 - Title the MainMenu
@@ -47,7 +44,7 @@ Written for Astroneer 1.0.15.0 on Steam - Authored May 2019
 - Add configurable backup timeframe
 - Package .ps1 as .exe
 
-#### 1.2 Changelog:
+#### 1.2
 - Consolidate tasks into one
 - Check for Early Acces binary paths
 - Correct escapes for task script launch
@@ -56,7 +53,7 @@ Written for Astroneer 1.0.15.0 on Steam - Authored May 2019
 - Improve Readme
 - 10 backups are always kept
 
-#### 1.3 Changelog:
+#### 1.3
 - Added Astroneer Backup upgrade functionality
 - Added support for legacy, future, and EXO Flight Test versions
 - Added 10 backups per save, per version, per lifetime
@@ -72,3 +69,8 @@ Written for Astroneer 1.0.15.0 on Steam - Authored May 2019
 - Add backup throttle
 - Add disk space check
 - Move enable/disable operations to functions
+
+## Disclosure
+### *MAKE MANUAL BACKUPS PRIOR TO USE*
+### *ONLY TESTED WITH STEAM VERSION*
+### *PROVIDED AS-IS WITH NO GUARANTEE EXPRESS OR IMPLIED*
