@@ -10,7 +10,7 @@
 - Written for Astroneer 1.0.15.0 on Steam - Authored May 2019
 
 ## Readme
-### What does this do?
+### What does it do?
 - This tool backs up Astroneer saves while Astroneer is running.
 - When Astroneer closes, it stops watching for changes.
 - You can choose how long you want backups to be kept.
