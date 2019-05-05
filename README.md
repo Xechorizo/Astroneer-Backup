@@ -11,7 +11,7 @@
 - When Astroneer closes, it stops watching for changes.
 - You can choose how long you want backups to be kept.
 - The Astroneer install is not changed in any way by this tool.
-- When saves are backed up, they're copied here: [**%userprofile%\Saved Games\AstroneerBackup**](%userprofile%\Saved Games\AstroneerBackup)
+- When saves are backed up, they're copied here: [%userprofile%\Saved Games\AstroneerBackup](file://%userprofile%\Saved Games\AstroneerBackup)
 
 ### How do I use it?
 - Astroneer Backup is best run from the [.EXE](https://www.virustotal.com/en/file/660b07cad89b8201902c70f7738154b12c87a211c0173288b863d757e0f496b5/analysis/1556963295/).
