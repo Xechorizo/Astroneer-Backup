@@ -1,5 +1,5 @@
 
-# [Download Astroneer Backup Version 1.3](https://github.com/Xechorizo/Astroneer-Backup/blob/dev/AstroneerBackup.exe)
+# [Download Astroneer Backup Version 1.3](AstroneerBackup.exe)
 ###### [EXE Clean Scan](https://www.virustotal.com/en/file/7d3032b8169bb5d41106db408d10317ed70199e2fa7702b8f94e2b31135961c0/analysis/1557043972/)
 ###### [PS1 Clean Scan](https://www.virustotal.com/en/file/56923c5ba052420a83563323ae00aa710d01ffc8e96937ac29f4753cc25ff3dd/analysis/1557043980/)
 ### Made by Xech
