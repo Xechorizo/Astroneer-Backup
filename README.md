@@ -35,39 +35,61 @@ Written for Astroneer 1.0.15.0 on Steam - Authored May 2019
 
 ## Change Log
 #### 1.1
-- Replace "install" and "uninstall" with "enable" and "disable"
-- Remove Intro
-- Title the MainMenu
-- Add Readme and Credit pages to MainMenu
-- Check common install location before launching game to gather path
-- Copy instead of zip
-- Add configurable backup timeframe
-- Package .ps1 as .exe
+- Added .exe packaging
+
+- Added configurable backup lifetime
+
+- Added common install locations and game launch for unusual paths
+
+- Improved file handling
+
+- Improved the Main Menu
+
+- Replaced "install"/"uninstall" with "enable"/"disable"
+
+- Replaced Intro with Readme and Credits
 
 #### 1.2
-- Consolidate tasks into one
-- Check for Early Acces binary paths
-- Correct escapes for task script launch
-- Improve task game detection
-- Improve elevation checks
-- Improve Readme
-- 10 backups are always kept
+- Added support for Early Acces binary paths
+
+- Consolidated tasks
+
+- Imporoved backups to always keep 10 
+
+- Improved task game detection
+
+- Improved elevation checks
+
+- Improved escapes for task script launch
+
+- Improved Readme
 
 #### 1.3
 - Added Astroneer Backup upgrade functionality
+
 - Added support for legacy, future, and EXO Flight Test versions
+
 - Added 10 backups per save, per version, per lifetime
+
 - Added new icon
+
 - Improved EXE packaging and security
+
 - Improved loop logic and performance
+
 - Improved launch directory logic
+
 - Removed changelog and consolidated versioning within the script
 
 #### Future To-Do:
 - Automatically update
+
 - Add support for Microsoft Store version
+
 - Add backup throttle
+
 - Add disk space check
+
 - Move enable/disable operations to functions
 
 ## Disclosure
