@@ -5,7 +5,7 @@
 ###### [PS1 Clean Scan](https://www.virustotal.com/en/file/56923c5ba052420a83563323ae00aa710d01ffc8e96937ac29f4753cc25ff3dd/analysis/1557043980/)
 ###### SHA256: 56923C5BA052420A83563323AE00AA710D01FFC8E96937AC29F4753CC25FF3DD
 
-###### [Screenshot](https://i.imgur.com/8fWjg4g.png)
+###### [Screenshot](https://i.imgur.com/KoM2kto.png)
 
 ### Made by Xech
 - Written for Astroneer 1.0.15.0 on Steam - Authored May 2019
