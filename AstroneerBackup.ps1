@@ -5,6 +5,30 @@
 #ONLY TESTED WITH STEAM VERSION
 #PROVIDED AS-IS WITH NO GUARANTEE EXPRESS OR IMPLIED
 
+#Launch UWP Astroneer.
+	#Start-Process ("Shell:AppsFolder\" + $(Get-AppxPackage SystemEraSoftworks*).PackageFamilyName + "!ASTRONEER")
+#Get UWP version.
+	#$(Get-AppxPackage SystemEraSoftworks*).Version
+#Get UWP directory.
+	#$(Get-AppxPackage SystemEraSoftworks*).InstallLocation
+#Get UWP binary path.
+	#$(Get-AppxPackage SystemEraSoftworks*).InstallLocation + "\Astro\Binaries\UWP64\Astro-UWP64-Shipping.exe"
+#Get UWP binary path from running.
+	#$(Get-Process Astro-UWP64-Shipping).Path
+#Get UWP folders with container files that refer to peer saves.
+	#(Get-ChildItem $env:LOCALAPPDATA\Packages\SystemEraSoftworks*\SystemAppData\wgs\ -Recurse -Filter container.*).FullName | Where-Object { Format-Hex $_ | Select-String S.A.V.E. } | Split-Path
+#Get UWP saves in folders with container files that refer to peer saves.
+	#(Get-ChildItem ((Get-ChildItem $env:LOCALAPPDATA\Packages\SystemEraSoftworks*\SystemAppData\wgs\ -Recurse -Filter container.*).FullName | Where-Object { Format-Hex $_ | Select-String S.A.V.E. } | Split-Path) | Where-Object { $_.Name -notmatch "container"}).FullName
+#Variables to specify platform.
+	#$gLaunchDir
+	#$bSource
+	#$bTaskName
+	#$bTaskExists
+	#Get-LaunchDirs
+	#Get-GameVersions
+#Check here for non-standard Steam libraries.
+	#$((Get-ItemProperty -Path HKLM:\SOFTWARE\WOW6432Node\Valve\Steam -Name InstallPath).InstallPath + "\steamapps\libraryfolders.vdf")
+
 #Astroneer Backup Version
 $bVersion = "1.3"
 
@@ -49,8 +73,11 @@ If (!$cPrinc.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
 #Disabled path declarations.
 #$myPath = (Get-Item $MyInvocation.MyCommand.Path).DirectoryName
 
-#Declare savegames location.
-$bSource = "$env:LOCALAPPDATA\Astro\Saved\SaveGames\"
+#Declare savegame locations.
+$bSourceSteam = "$env:LOCALAPPDATA\Astro\Saved\SaveGames\"
+If (Test-Path ((Get-ChildItem $env:LOCALAPPDATA\Packages\SystemEraSoftworks*\SystemAppData\wgs\ -Recurse -Filter container.*).FullName | Where-Object { Format-Hex $_ | Select-String S.A.V.E. } | Split-Path)) {
+	$bSourceUWP = (Get-ChildItem $env:LOCALAPPDATA\Packages\SystemEraSoftworks*\SystemAppData\wgs\ -Recurse -Filter container.*).FullName | Where-Object { Format-Hex $_ | Select-String S.A.V.E. } | Split-Path
+}
 
 #Declare savegames backup location.
 $bDest = "$env:USERPROFILE\Saved Games\AstroneerBackup\"
@@ -66,62 +93,88 @@ $bLifetimeConfig = "$bConfig" + "bLifetime.cfg"
 #Declare task audit export, task names, and combinations.
 #These prevent the script from running unless the game is also running. You're welcome.
 $bTaskAudit = "$env:TEMP\secpol.cfg"
-$bTaskName = "AstroneerBackup"
+$bTaskNameSteam = "AstroneerBackupSteam"
+$bTaskNameUWP = "AstroneerBackupUWP"
 
 #Define functions.
 
 #Declare game location for task auditing.
-Function Get-LaunchDir {
+Function Get-LaunchDirs {
 	$sLaunched = $False
 	#Check the Steam library first.
 	If ($(Test-Path HKLM:\SOFTWARE\WOW6432Node\Valve\Steam)) {
 		$script:SteamPath = (Get-ItemProperty -Path HKLM:\SOFTWARE\WOW6432Node\Valve\Steam -Name InstallPath).InstallPath
 	}
 	If (Test-Path ("$SteamPath" + "\steamapps\common\ASTRONEER\Astro.exe")) {
-		$script:gLaunchDir = "$SteamPath" + "\steamapps\common\ASTRONEER\Astro.exe"
+		$script:gLaunchDirSteam = "$SteamPath" + "\steamapps\common\ASTRONEER\Astro.exe"
 	}
 	If (Test-Path ("$SteamPath" + "\steamapps\common\ASTRONEER Early Access\Astro.exe")) {
-		$script:gLaunchDir = "$SteamPath" + "\steamapps\common\ASTRONEER Early Access\Astro.exe"
+		$script:gLaunchDirSteam = "$SteamPath" + "\steamapps\common\ASTRONEER Early Access\Astro.exe"
 	}
 	If ([bool](Get-Process -Name Astro -ErrorAction SilentlyContinue).Path) {
-		$script:gLaunchDir = (Get-Process -Name Astro -ErrorAction SilentlyContinue).Path
+		$script:gLaunchDirSteam = (Get-Process -Name Astro -ErrorAction SilentlyContinue).Path
+	}
+	#Check the Microsoft Store packages next.
+	If (Test-Path $(Get-AppxPackage SystemEraSoftworks*).InstallLocation) {
+		$script:gLaunchDirUWP = $(Get-AppxPackage SystemEraSoftworks*).InstallLocation + "\Astro\Binaries\UWP64\Astro-UWP64-Shipping.exe"
 	}
 	#If game process is not found, launch it to find it.
-	If ($script:gInstalled -And (![bool]$script:gLaunchDir))  {
-		Write-Host -F WHITE "Game not found in default location. Launching briefly to get path..."
+	If ($script:gInstalledSteam -And (![bool]$script:gLaunchDirSteam))  {
+		Write-Host -F WHITE "Steam game not found in default location. Launching briefly to get path..."
 		explorer.exe steam://run/361420
 		$sLaunched = $True
 		Do {
 			#Wait for game to launch, trying to get path.
 			For ($i=0; $i -le 10; $i++) {
-				$script:gLaunchDir = (Get-Process -Name Astro -ErrorAction SilentlyContinue).Path
+				$script:gLaunchDirSteam = (Get-Process -Name Astro -ErrorAction SilentlyContinue).Path
 				Start-Sleep -Seconds 1
 			}
 		}
-		Until ([bool]$gLaunchDir)
+		Until ([bool]$gLaunchDirSteam)
+	}
+	If ($script:gInstalledUWP -And (![bool]$script:gLaunchDirUWP))  {
+		Write-Host -F WHITE "Steam game not found in default location. Launching briefly to get path..."
+		Start-Process ("Shell:AppsFolder\" + $(Get-AppxPackage SystemEraSoftworks*).PackageFamilyName + "!ASTRONEER")
+		$sLaunched = $True
+		Do {
+			#Wait for game to launch, trying to get path.
+			For ($i=0; $i -le 10; $i++) {
+				$script:gLaunchDirUWP = (Get-Process -Name Astro-UWP64-Shipping -ErrorAction SilentlyContinue).Path
+				Start-Sleep -Seconds 1
+			}
+		}
+		Until ([bool]$gLaunchDirSteam)
 	}
 	#If script launched the game, close it. Otherwise, leave your game running.
-	If ($sLaunched -And [bool](Get-Process -Name Astro -ErrorAction SilentlyContinue)){
+	If ($sLaunched -And ([bool](Get-Process -Name Astro -ErrorAction SilentlyContinue) -Or [bool](Get-Process -Name Astro-UWP64-Shipping -ErrorAction SilentlyContinue))) {
 		Stop-Process -Name Astro -ErrorAction SilentlyContinue
 		Stop-Process -Name Astro-Win64-Shipping -ErrorAction SilentlyContinue
+		Stop-Process -Name Astro-UWP64-Shipping -ErrorAction SilentlyContinue
 	}
-	If (Test-Path ((Split-Path $gLaunchDir) + "\build.version")) {
-		$script:gVersion = ((Get-Content ((Split-Path $gLaunchDir) + "\build.version") -Delimiter " ")[0] -replace " ","")
+	If (Test-Path ((Split-Path $gLaunchDirSteam) + "\build.version")) {
+		$script:gVersionSteam = ((Get-Content ((Split-Path $gLaunchDirSteam) + "\build.version") -Delimiter " ")[0] -replace " ","")
+	}
+	If ([bool]$(Get-AppxPackage SystemEraSoftworks*).Version) {
+		$script:gVersionUWP = $(Get-AppxPackage SystemEraSoftworks*).Version
 	}
 }
 
 # Declare game version.
-Function Get-GameVersion {
-	If ([bool]$gLaunchDir) {
-		If (Test-Path ((Split-Path $gLaunchDir -ErrorAction SilentlyContinue) + "\build.version")) {
-			$script:gVersion = ((Get-Content ((Split-Path $gLaunchDir) + "\build.version") -Delimiter " ")[0] -replace " ","")
+Function Get-GameVersions {
+	If ([bool]$gLaunchDirSteam) {
+		If (Test-Path ((Split-Path $gLaunchDirSteam -ErrorAction SilentlyContinue) + "\build.version")) {
+			$script:gVersionSteam = ((Get-Content ((Split-Path $gLaunchDirSteam) + "\build.version") -Delimiter " ")[0] -replace " ","")
 		}
+	}
+	If ([bool]$(Get-AppxPackage SystemEraSoftworks*).Version) {
+		$script:gVersionUWP = $(Get-AppxPackage SystemEraSoftworks*).Version
 	}
 }
 
 #Declare variables that check for backup components.
 Function Get-Done {
-	$script:bSourceExists = $(Test-Path $bSource)
+	$script:bSourceSteamExists = $(Test-Path $bSourceSteam)
+	$script:bSourceUWPExists = $(Test-Path $bSourceUWP)
 	$script:bDestExists = $(Test-Path $bDest)
 	If ($bDestExists) {
 		$script:bCount = (Get-ChildItem $bDest -Recurse -Filter *.sav*).Count
@@ -140,7 +193,7 @@ Function Get-Done {
 	}
 	Export-Task
 	$script:bTaskAuditExists = $(Test-Path $bTaskAudit) -And $([bool](Select-String -Path "$bTaskAudit" -Pattern 'AuditProcessTracking = 1'))
-	$script:bTaskExists = $([bool](Get-ScheduledTask | Where-Object {$_.TaskName -like $bTaskName}))
+	$script:bTaskExists = $([bool](Get-ScheduledTask | Where-Object {($_.TaskName -Like $bTaskNameSteam) -Or ($_.TaskName -Like $bTaskNameUWP)}))
 	$script:AllDone = $($bDestExists -And $bConfigExists -And $bScriptExists -And $bTaskAuditExists -And $bTaskExists)
 	$script:AllUndone = $(!($bDestExists -Or $bConfigExists -Or $bScriptExists -Or $bTaskAuditExists -Or $bTaskExists))
 }
@@ -172,12 +225,20 @@ Function Write-HighlightNNL($Exists) {
 
 #Assumes if Astroneer savegame folder exists, Astroneer is installed.
 Function Get-GameInstalled {
-	While (!($bSourceExists)) {
+	If ($bSourceSteamExists) {
+		$script:gInstalledSteam = $True
+	}
+	If ($bSourceUWPExists) {
+	$script:gInstalledUWP = $True
+	}
+	While (!($bSourceSteamExists) -And !($bSourceUWPExists)) {
 		Clear-Host
 		Write-Host -F RED "Astroneer savegame folder MISSING:" $bSource
 		Write-Blank(1)
-		Write-Host "INSTALL Astroneer from Steam and CREATE a savegame"
-		Write-Blank(6)
+		Write-Host -F RED "Astroneer savegame folder MISSING:" $env:LOCALAPPDATA\Packages\SystemEraSoftworks*\SystemAppData\wgs\
+		Write-Blank(1)
+		Write-Host "INSTALL Astroneer from Steam or Microsoft Store and CREATE a savegame"
+		Write-Blank(4)
 		Do {
 			Write-Host -N -F YELLOW "Would you like to CONTINUE Y/(N)?"
 			$Choice = Read-Host
@@ -202,7 +263,16 @@ Function Get-GameInstalled {
 			}
 		}
 	}
-	$script:gInstalled = $True
+}
+Function Get-GameVersions {
+	If ([bool]$gLaunchDirSteam) {
+		If (Test-Path ((Split-Path $gLaunchDirSteam -ErrorAction SilentlyContinue) + "\build.version")) {
+			$script:gVersionSteam = ((Get-Content ((Split-Path $gLaunchDirSteam) + "\build.version") -Delimiter " ")[0] -replace " ","")
+		}
+	}
+	If ([bool]$(Get-AppxPackage SystemEraSoftworks*).Version) {
+		$script:gVersionUWP = $(Get-AppxPackage SystemEraSoftworks*).Version
+	}
 }
 
 #Alt-tabs, since a PowerShell window can steal focus... https://github.com/Microsoft/console/issues/249
@@ -217,7 +287,7 @@ Function Get-UpgradeNeeded {
 		Write-Host -N -F RED "WARNING - ASTRONEER BACKUP OUTDATED: "; Write-Host -F YELLOW "Latest: $bVersion"
 		Write-Blank(8)
 		Do {
-			Write-Host -N -F YELLOW "Would you like to first DISABLE (Y)/N?"
+			Write-Host -N -F YELLOW "Would you like to first DISABLE this old version (Y)/N?"
 			$Choice = Read-Host
 			$Ok = $Choice -match '^[yn]+$|^$'
 			If (-not $Ok) {
@@ -244,9 +314,9 @@ Function Write-MainMenu {
 	While ($True) {
 		Clear-Host
 		Get-Done
-		Write-Host -F GREEN "= = = = = = = = = = = = = = = = Astroneer Backup = = = = = = = = = = = = = = = = ="
-		Write-Host -F GREEN "                                  Version" $bVersion
-		Write-Blank(1)
+		Write-Host -F GREEN "= = = = = = = = = = = = = = = = Astroneer Backup $bVersion = = = = = = = = = = = = = = = = ="
+		Write-Host -F WHITE "Steam Version: " -N; If ($gInstalledSteam) {Write-Host -F GREEN "$gVersionSteam"} Else {Write-Host -F RED "N/A"}
+		Write-Host -F WHITE "Microsoft Store Version: " -N; If ($gInstalledUWP) {Write-Host -F GREEN "$gVersionUWP"} Else {Write-Host -F RED "N/A"}
 		Write-Host -F WHITE "Backup LOCATION: " -N; Write-Host -F YELLOW "$bDest"
 		Write-Host -F WHITE "Backup LIFETIME: " -N; Write-Host -F YELLOW "$bLifetime" -N; Write-Host -F WHITE " Days"
 		Write-Host -F WHITE "Backup ENABLED: " -N; Write-Highlight($AllDone)
@@ -345,7 +415,7 @@ Function Write-MainMenu {
 				Write-Host -F GREEN "                                  Made by " -N; Write-Host -F RED "Xech"
 				Write-Blank(1)
 				Write-Host -F GREEN "                               Special thanks to:"
-				Write-Host -F WHITE "      Yksi, Mitranium, sinuhe, Afish, somejerk, System Era, and Paul Pepera " -N; Write-Host -F MAGENTA "<3"
+				Write-Host -F WHITE " Yksi, Mitranium, mallaig, sinuhe, Afish, somejerk, System Era, and Paul Pepera " -N; Write-Host -F MAGENTA "<3"
 				Write-Blank(1)
 				Write-Host -F YELLOW "                         Contributors/Forks: " -N; Write-Host -F RED "None yet :)"
 				Write-Blank(1)   
@@ -365,36 +435,70 @@ Function Write-MainMenu {
 
 #Write scheduled tasks to detect the game, call the backup script, and stop itself when the game exits.
 Function Write-Task {
-	Get-LaunchDir
-	Get-GameVersion
-	$Path = 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe'
-	$Arguments = '-WindowStyle Hidden -NoProfile -NoLogo -NonInteractive -ExecutionPolicy Bypass -File "' + "$bConfig" + 'AstroneerBackup.ps1"'
-	$Service = New-Object -ComObject ("Schedule.Service")
-	$Service.Connect()
-	$RootFolder = $Service.GetFolder("\")
-	
-	$TaskDefinition = $Service.NewTask(0) # TaskDefinition object https://msdn.microsoft.com/en-us/library/windows/desktop/aa382542(v=vs.85).aspx
-	$TaskDefinition.Principal.RunLevel = 1
-	$TaskDefinition.RegistrationInfo.Description = "$bTaskName"
-	$TaskDefinition.Settings.Enabled = $True
-	$TaskDefinition.Settings.AllowDemandStart = $True
-	$TaskDefinition.Settings.DisallowStartIfOnBatteries = $False
-	$TaskDefinition.Settings.StopIfGoingOnBatteries = $False
-	$TaskDefinition.Settings.RunOnlyIfIdle = $False
-	$TaskDefinition.Settings.IdleSettings.StopOnIdleEnd = $False
-	
-	$Triggers = $TaskDefinition.Triggers
-	$Trigger = $Triggers.Create(0) # 0 is an event trigger https://msdn.microsoft.com/en-us/library/windows/desktop/aa383898(v=vs.85).aspx
-	$Trigger.Enabled = $True
-	$Trigger.Id = '4688' # 4688 is for process create and 4689 is for process exit
-	$Trigger.Subscription = "<QueryList><Query Id=`"0`" Path=`"Security`"><Select Path=`"Security`"> *[System[Provider[@Name=`'Microsoft-Windows-Security-Auditing`'] and Task = 13312 and (EventID=4688)]] and *[EventData[Data[@Name=`'NewProcessName`'] and (Data=`'" + "$gLaunchDir" + "`')]]</Select></Query></QueryList>"
-	
-	$Action = $TaskDefinition.Actions.Create(0)
-	$Action.Path = $Path
-	$Action.Arguments = $Arguments
-	
-	#Needs password? https://powershell.org/forums/topic/securing-password-for-use-with-registertaskdefinition/
-	$RootFolder.RegisterTaskDefinition($bTaskName, $TaskDefinition, 6, $env:USERNAME, $null, 3) | Out-Null
+	If ($gInstalledSteam) {
+		Get-LaunchDirs
+		Get-GameVersions
+		$Path = 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe'
+		$Arguments = '-WindowStyle Hidden -NoProfile -NoLogo -NonInteractive -ExecutionPolicy Bypass -File "' + "$bConfig" + 'AstroneerBackup.ps1"'
+		$Service = New-Object -ComObject ("Schedule.Service")
+		$Service.Connect()
+		$RootFolder = $Service.GetFolder("\")
+		
+		$TaskDefinition = $Service.NewTask(0) # TaskDefinition object https://msdn.microsoft.com/en-us/library/windows/desktop/aa382542(v=vs.85).aspx
+		$TaskDefinition.Principal.RunLevel = 1
+		$TaskDefinition.RegistrationInfo.Description = "$bTaskNameSteam"
+		$TaskDefinition.Settings.Enabled = $True
+		$TaskDefinition.Settings.AllowDemandStart = $True
+		$TaskDefinition.Settings.DisallowStartIfOnBatteries = $False
+		$TaskDefinition.Settings.StopIfGoingOnBatteries = $False
+		$TaskDefinition.Settings.RunOnlyIfIdle = $False
+		$TaskDefinition.Settings.IdleSettings.StopOnIdleEnd = $False
+		
+		$Triggers = $TaskDefinition.Triggers
+		$Trigger = $Triggers.Create(0) # 0 is an event trigger https://msdn.microsoft.com/en-us/library/windows/desktop/aa383898(v=vs.85).aspx
+		$Trigger.Enabled = $True
+		$Trigger.Id = '4688' # 4688 is for process create and 4689 is for process exit
+		$Trigger.Subscription = "<QueryList><Query Id=`"0`" Path=`"Security`"><Select Path=`"Security`"> *[System[Provider[@Name=`'Microsoft-Windows-Security-Auditing`'] and Task = 13312 and (EventID=4688)]] and *[EventData[Data[@Name=`'NewProcessName`'] and (Data=`'" + "$gLaunchDirSteam" + "`')]]</Select></Query></QueryList>"
+		
+		$Action = $TaskDefinition.Actions.Create(0)
+		$Action.Path = $Path
+		$Action.Arguments = $Arguments
+		
+		#Needs password? https://powershell.org/forums/topic/securing-password-for-use-with-registertaskdefinition/
+		$RootFolder.RegisterTaskDefinition($bTaskNameSteam, $TaskDefinition, 6, $env:USERNAME, $null, 3) | Out-Null
+	}
+	If ($gInstalledUWP) {
+		Get-LaunchDirs
+		Get-GameVersions
+		$Path = 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe'
+		$Arguments = '-WindowStyle Hidden -NoProfile -NoLogo -NonInteractive -ExecutionPolicy Bypass -File "' + "$bConfig" + 'AstroneerBackup.ps1"'
+		$Service = New-Object -ComObject ("Schedule.Service")
+		$Service.Connect()
+		$RootFolder = $Service.GetFolder("\")
+		
+		$TaskDefinition = $Service.NewTask(0) # TaskDefinition object https://msdn.microsoft.com/en-us/library/windows/desktop/aa382542(v=vs.85).aspx
+		$TaskDefinition.Principal.RunLevel = 1
+		$TaskDefinition.RegistrationInfo.Description = "$bTaskNameUWP"
+		$TaskDefinition.Settings.Enabled = $True
+		$TaskDefinition.Settings.AllowDemandStart = $True
+		$TaskDefinition.Settings.DisallowStartIfOnBatteries = $False
+		$TaskDefinition.Settings.StopIfGoingOnBatteries = $False
+		$TaskDefinition.Settings.RunOnlyIfIdle = $False
+		$TaskDefinition.Settings.IdleSettings.StopOnIdleEnd = $False
+		
+		$Triggers = $TaskDefinition.Triggers
+		$Trigger = $Triggers.Create(0) # 0 is an event trigger https://msdn.microsoft.com/en-us/library/windows/desktop/aa383898(v=vs.85).aspx
+		$Trigger.Enabled = $True
+		$Trigger.Id = '4688' # 4688 is for process create and 4689 is for process exit
+		$Trigger.Subscription = "<QueryList><Query Id=`"0`" Path=`"Security`"><Select Path=`"Security`"> *[System[Provider[@Name=`'Microsoft-Windows-Security-Auditing`'] and Task = 13312 and (EventID=4688)]] and *[EventData[Data[@Name=`'NewProcessName`'] and (Data=`'" + "$gLaunchDirUWP" + "`')]]</Select></Query></QueryList>"
+		
+		$Action = $TaskDefinition.Actions.Create(0)
+		$Action.Path = $Path
+		$Action.Arguments = $Arguments
+		
+		#Needs password? https://powershell.org/forums/topic/securing-password-for-use-with-registertaskdefinition/
+		$RootFolder.RegisterTaskDefinition($bTaskNameUWP, $TaskDefinition, 6, $env:USERNAME, $null, 3) | Out-Null
+	}
 }
 
 #Check for critical backup components, installing anything missing.
@@ -522,38 +626,90 @@ Function Enable-Backup {
 		#Start backup script.
 
 '#Astroneer Backup ' + $bVersion + '
-#Task audit event 4688 for Astro.exe invokes backup action.
+#Task audit event 4688 for Astro.exe or Astro-UWP64-Shipping.exe invokes backup actions.
 
 #Declare paths, filter, and backup lifetime.
-$bSource = "$env:LOCALAPPDATA\Astro\Saved\SaveGames\"
+$bSourceSteam = "$env:LOCALAPPDATA\Astro\Saved\SaveGames\"
+If (Test-Path ((Get-ChildItem $env:LOCALAPPDATA\Packages\SystemEraSoftworks*\SystemAppData\wgs\ -Recurse -Filter container.*).FullName | Where-Object { Format-Hex $_ | Select-String S.A.V.E. } | Split-Path)) {
+	$bSourceUWP = (Get-ChildItem $env:LOCALAPPDATA\Packages\SystemEraSoftworks*\SystemAppData\wgs\ -Recurse -Filter container.*).FullName | Where-Object { Format-Hex $_ | Select-String S.A.V.E. } | Split-Path
+}
 $bDest = "$env:USERPROFILE\Saved Games\AstroneerBackup\"
 $bConfig = $bDest + "Config\"
-$bFilter = "*.sav*"
+$bFilter = "*"
 
 $bLifetimeConfig = "$bConfig" + "bLifetime.cfg"
 $bLifetime = (Get-Content $bLifetimeConfig)
 
 #Declare game launch directory function for task auditing.
-Function Get-LaunchDir {
+Function Get-LaunchDirs {
+	$sLaunched = $False
 	#Check the Steam library first.
 	If ($(Test-Path HKLM:\SOFTWARE\WOW6432Node\Valve\Steam)) {
 		$script:SteamPath = (Get-ItemProperty -Path HKLM:\SOFTWARE\WOW6432Node\Valve\Steam -Name InstallPath).InstallPath
 	}
 	If (Test-Path ("$SteamPath" + "\steamapps\common\ASTRONEER\Astro.exe")) {
-		$script:gLaunchDir = "$SteamPath" + "\steamapps\common\ASTRONEER\Astro.exe"
+		$script:gLaunchDirSteam = "$SteamPath" + "\steamapps\common\ASTRONEER\Astro.exe"
 	}
 	If (Test-Path ("$SteamPath" + "\steamapps\common\ASTRONEER Early Access\Astro.exe")) {
-		$script:gLaunchDir = "$SteamPath" + "\steamapps\common\ASTRONEER Early Access\Astro.exe"
+		$script:gLaunchDirSteam = "$SteamPath" + "\steamapps\common\ASTRONEER Early Access\Astro.exe"
 	}
 	If ([bool](Get-Process -Name Astro -ErrorAction SilentlyContinue).Path) {
-		$script:gLaunchDir = (Get-Process -Name Astro -ErrorAction SilentlyContinue).Path
+		$script:gLaunchDirSteam = (Get-Process -Name Astro -ErrorAction SilentlyContinue).Path
+	}
+	#Check the Microsoft Store packages next.
+	If (Test-Path $(Get-AppxPackage SystemEraSoftworks*).InstallLocation) {
+		$script:gLaunchDirUWP = $(Get-AppxPackage SystemEraSoftworks*).InstallLocation + "\Astro\Binaries\UWP64\Astro-UWP64-Shipping.exe"
+	}
+	#If game process is not found, launch it to find it.
+	If ($script:gInstalledSteam -And (![bool]$script:gLaunchDirSteam))  {
+		Write-Host -F WHITE "Steam game not found in default location. Launching briefly to get path..."
+		explorer.exe steam://run/361420
+		$sLaunched = $True
+		Do {
+			#Wait for game to launch, trying to get path.
+			For ($i=0; $i -le 10; $i++) {
+				$script:gLaunchDirSteam = (Get-Process -Name Astro -ErrorAction SilentlyContinue).Path
+				Start-Sleep -Seconds 1
+			}
+		}
+		Until ([bool]$gLaunchDirSteam)
+	}
+	If ($script:gInstalledUWP -And (![bool]$script:gLaunchDirUWP))  {
+		Write-Host -F WHITE "Steam game not found in default location. Launching briefly to get path..."
+		Start-Process ("Shell:AppsFolder\" + $(Get-AppxPackage SystemEraSoftworks*).PackageFamilyName + "!ASTRONEER")
+		$sLaunched = $True
+		Do {
+			#Wait for game to launch, trying to get path.
+			For ($i=0; $i -le 10; $i++) {
+				$script:gLaunchDirUWP = (Get-Process -Name Astro-UWP64-Shipping -ErrorAction SilentlyContinue).Path
+				Start-Sleep -Seconds 1
+			}
+		}
+		Until ([bool]$gLaunchDirSteam)
+	}
+	#If script launched the game, close it. Otherwise, leave your game running.
+	If ($sLaunched -And ([bool](Get-Process -Name Astro -ErrorAction SilentlyContinue) -Or [bool](Get-Process -Name Astro-UWP64-Shipping -ErrorAction SilentlyContinue))) {
+		Stop-Process -Name Astro -ErrorAction SilentlyContinue
+		Stop-Process -Name Astro-Win64-Shipping -ErrorAction SilentlyContinue
+		Stop-Process -Name Astro-UWP64-Shipping -ErrorAction SilentlyContinue
+	}
+	If (Test-Path ((Split-Path $gLaunchDirSteam) + "\build.version")) {
+		$script:gVersionSteam = ((Get-Content ((Split-Path $gLaunchDirSteam) + "\build.version") -Delimiter " ")[0] -replace " ","")
+	}
+	If ([bool]$(Get-AppxPackage SystemEraSoftworks*).Version) {
+		$script:gVersionUWP = $(Get-AppxPackage SystemEraSoftworks*).Version
 	}
 }
 
 #Declare game version function.
-Function Get-GameVersion {
-If (Test-Path ((Split-Path $gLaunchDir) + "\build.version")) {
-	$script:gVersion = ((Get-Content ((Split-Path $gLaunchDir) + "\build.version") -Delimiter " ")[0] -replace " ","")
+Function Get-GameVersions {
+	If ([bool]$gLaunchDirSteam) {
+		If (Test-Path ((Split-Path $gLaunchDirSteam -ErrorAction SilentlyContinue) + "\build.version")) {
+			$script:gVersionSteam = ((Get-Content ((Split-Path $gLaunchDirSteam) + "\build.version") -Delimiter " ")[0] -replace " ","")
+		}
+	}
+	If ([bool]$(Get-AppxPackage SystemEraSoftworks*).Version) {
+		$script:gVersionUWP = $(Get-AppxPackage SystemEraSoftworks*).Version
 	}
 }
 
@@ -576,24 +732,32 @@ $sWatcher = New-Object IO.FileSystemWatcher $bSource, $bFilter -Property @{
 
 #Declare event handler actions.
 $bAction = {
-	Get-LaunchDir
-	Get-GameVersion
+	Get-LaunchDirs
+	Get-GameVersions
 	$cDate = Get-Date
 	$dDate = $cDate.AddDays(-$bLifetime)
 	$sGame = $Event.SourceEventArgs.Name
-	$bFull = $bDest + $gVersion + "\" + $sGame
+	If ([bool](Get-Process Astro -ErrorAction SilentlyContinue)) {
+		$bFull = $bDest + $gVersionSteam + "\" + $sGame
+	}
+	If ([bool](Get-Process Astro-UWP64-Shipping -ErrorAction SilentlyContinue)) {
+		$bFull = $bDest + $gVersionUWP + "\" + $sGame
+	}
 	$bFullExists = $(Test-Path ($bFull))
 	#Check for version folder and write one if missing.
-	If (!(Test-Path ($bDest + $gVersion + "\"))) {
-		New-Item ($bDest + $gVersion) -ItemType Directory
+	If (([bool](Get-Process Astro -ErrorAction SilentlyContinue)) -And !(Test-Path ($bDest + $gVersionSteam + "\"))) {
+		New-Item ($bDest + $gVersionSteam) -ItemType Directory
+	}
+	If (([bool](Get-Process Astro-UWP64-Shipping -ErrorAction SilentlyContinue)) -And !(Test-Path ($bDest + $gVersionSteam + "\"))) {
+		New-Item ($bDest + $gVersionUWP) -ItemType Directory
 	}
 	#Check for backup file and write one if missing.
 	If (!$bFullExists) {
 		Copy-Item "$bSource\$sGame" -Destination $bFull -Force
 	}
 	#Keep 10 backups per game, per game version, within the backup lifetime.
-	(Get-ChildItem $bDest -Recurse -File -Filter $bFilter).Name -Replace ("\$.*","") | Select-Object -Unique | ForEach-Object {
-		Get-ChildItem $bDest -Recurse -File -Filter $_* | Where-Object { $_.LastWriteTime -lt $dDate } | Sort-Object LastWriteTime -Desc | Select-Object -Skip 10 | Remove-Item -Force
+	(Get-ChildItem $bDest -Recurse -File).Name -Replace ("\$.*","") | Select-Object -Unique | ForEach-Object {
+		Get-ChildItem $bDest -Recurse -File | Where-Object { $_.LastWriteTime -lt $dDate } | Sort-Object LastWriteTime -Desc | Select-Object -Skip 10 | Remove-Item -Force
 	}
 }
 
@@ -605,10 +769,11 @@ $Handler = . {
 #Wait for the game to stop.
 Try {
 	([bool](Get-Process -Name Astro -ErrorAction SilentlyContinue))
+	([bool](Get-Process -Name Astro-UWP64-Shipping -ErrorAction SilentlyContinue))
 	Do {
 		Wait-Event -Timeout 1
 	}
-	Until (![bool](Get-Process -Name Astro -ErrorAction SilentlyContinue))
+	Until (![bool](Get-Process -Name Astro -ErrorAction SilentlyContinue) -And ![bool](Get-Process -Name Astro-UWP64-Shipping -ErrorAction SilentlyContinue))
 }
 
 #Unregister and dispose of active handlers and jobs.
@@ -636,19 +801,23 @@ Finally
 	#Check for scheduled tasks.
 	Get-Done
 	If (!($bTaskExists)) {
-		Write-Host -F YELLOW "CREATING Astroneer backup scheduled task..."
+		Write-Host -F YELLOW "CREATING Astroneer backup scheduled tasks..."
 		Write-Task
 		Get-Done
 		If ($bTaskExists) {
-			Write-Host -F GREEN "CREATED Astroneer backup scheduled task:" $bTaskName
+			Write-Host -F GREEN "CREATED Astroneer backup scheduled tasks:" $bTaskNameSteam $bTaskNameUWP
 			If ([bool](Get-Process -Name Astro -ErrorAction SilentlyContinue)) {
-				Start-ScheduledTask $bTaskName | Out-Null
+				Start-ScheduledTask $bTaskNameSteam | Out-Null
+				Get-AltTab
+			}
+			If ([bool](Get-Process -Name Astro-UWP64-Shipping -ErrorAction SilentlyContinue)) {
+				Start-ScheduledTask $bTaskNameUWP | Out-Null
 				Get-AltTab
 			}
 			Write-Blank(1)
 		}
 		Else {
-			Write-Host -F RED "ERROR creating Astroneer backup scheduled task:" $bTaskName
+			Write-Host -F RED "ERROR creating Astroneer backup scheduled tasks:" $bTaskNameSteam $bTaskNameUWP
 			Write-Blank(1)
 		}
 		Write-Host -N -F YELLOW "Press any key to CONTINUE..."
@@ -670,16 +839,17 @@ Function Disable-Backup {
 	Clear-Host
 	Get-Done
 	If ($bTaskExists) {
-		Write-Host -F YELLOW "DELETING Astroneer backup task:" $bTaskName
-		Unregister-ScheduledTask -TaskName "$bTaskName" -Confirm:$False | Out-Null
+		Write-Host -F YELLOW "DELETING Astroneer backup scheduled tasks:" $bTaskNameSteam $bTaskNameUWP
+		Unregister-ScheduledTask -TaskName "$bTaskNameSteam" -Confirm:$False | Out-Null
+		Unregister-ScheduledTask -TaskName "$bTaskNameUWP" -Confirm:$False | Out-Null
 		Get-Done
 		If ($bTaskExists) {
-			Write-Host -F RED "ERROR deleting Astroneer backup task:" $bTaskName
+			Write-Host -F RED "ERROR deleting Astroneer backup scheduled tasks:" $bTaskNameSteam $bTaskNameUWP
 			Get-Done
 			Write-Blank(1)
 		}
 		If (!($bTaskExists)) {
-			Write-Host -F GREEN "DELETED Astroneer backup task:" $bTaskName
+			Write-Host -F GREEN "DELETED Astroneer backup scheduled tasks:" $bTaskNameSteam $bTaskNameUWP
 			Get-Done
 			Write-Blank(1)
 		}
@@ -727,9 +897,9 @@ Function Disable-Backup {
 	If ($bDestExists) {
 		Clear-Host
 		Get-Done
-		Write-Host -F YELLOW "CHECKING for Astroneer backups: $bDest.\*.sav*"
+		Write-Host -F YELLOW "CHECKING for Astroneer backups: $bDest"
 		$bChecked = $False
-		While (($(Get-ChildItem $bDest -Filter *.sav* -Recurse).Count -gt 0) -And !$bChecked) {
+		While (($(Get-ChildItem $bDest -Recurse).Count -gt 0) -And !$bChecked) {
 			Do {
 				While ([bool](Get-ChildItem $bDest -Recurse | Where-Object { (Get-ChildItem $_.FullName).Count -eq 0 })) {
 					Get-ChildItem $bDest -Recurse | Where-Object { (Get-ChildItem $_.FullName).Count -eq 0 } | Select-Object -ExpandProperty FullName | ForEach-Object {
@@ -738,7 +908,7 @@ Function Disable-Backup {
 				}
 				$bChecked = $True
 				Write-Blank(1)
-				Write-Host -F RED "WARNING - ASTRONEER BACKUPS EXIST: $bDest.\*.sav*"
+				Write-Host -F RED "WARNING - ASTRONEER BACKUPS EXIST: $bDest.\*"
 				Write-Blank(1)
 				Write-Host -N -F RED "THIS CANNOT BE UNDONE: "; Write-Host -N -F YELLOW "Would you like to DELETE BACKUPS Y/(N)?"
 				$Choice = Read-Host
@@ -760,15 +930,15 @@ Function Disable-Backup {
 					Get-Prompt
 				}
 				"N|^$" {
-					Write-Host -F GREEN "ASTRONEER BACKUPS PRESERVED: $bDest.\*.sav*"
+					Write-Host -F GREEN "ASTRONEER BACKUPS PRESERVED: $bDest.\*"
 					Write-Blank(1)
 					Write-Host -N -F YELLOW "Press any key to CONTINUE..."
 					Get-Prompt
 				}
 			}
 			Get-Done
-			If ($bDestExists -And ($(Get-ChildItem $bDest -Recurse -Filter *.sav*).Count -eq 0)) {
-				Write-Host -F GREEN "NO Astroneer backups found: $bDest*.sav*"
+			If ($bDestExists -And ($(Get-ChildItem $bDest -Recurse).Count -eq 0)) {
+				Write-Host -F GREEN "NO Astroneer backups found: $bDest.\*"
 				Write-Blank(1)
 				Write-Host -F YELLOW "DELETING empty Astroneer backup folder:" $bDest
 				Remove-Item -Path $bDest -Force -Recurse -Confirm:$False | Out-Null
@@ -804,6 +974,7 @@ Clear-Host
 Export-Task
 Get-Done
 Get-GameInstalled
-Get-GameVersion
+Get-LaunchDirs
+Get-GameVersions
 Get-UpgradeNeeded
 Write-MainMenu
