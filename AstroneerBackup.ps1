@@ -30,7 +30,7 @@
 	#$((Get-ItemProperty -Path HKLM:\SOFTWARE\WOW6432Node\Valve\Steam -Name InstallPath).InstallPath + "\steamapps\libraryfolders.vdf")
 
 #Astroneer Backup Version
-$bVersion = "1.3"
+$bVersion = "1.4"
 
 #Stop on error.
 $ErrorActionPreference = "Stop"
@@ -151,12 +151,6 @@ Function Get-LaunchDirs {
 		Stop-Process -Name Astro-Win64-Shipping -ErrorAction SilentlyContinue
 		Stop-Process -Name Astro-UWP64-Shipping -ErrorAction SilentlyContinue
 	}
-	If (Test-Path ((Split-Path $gLaunchDirSteam) + "\build.version")) {
-		$script:gVersionSteam = ((Get-Content ((Split-Path $gLaunchDirSteam) + "\build.version") -Delimiter " ")[0] -replace " ","")
-	}
-	If ([bool]$(Get-AppxPackage SystemEraSoftworks*).Version) {
-		$script:gVersionUWP = $(Get-AppxPackage SystemEraSoftworks*).Version
-	}
 }
 
 # Declare game version.
@@ -177,7 +171,7 @@ Function Get-Done {
 	$script:bSourceUWPExists = $(Test-Path $bSourceUWP)
 	$script:bDestExists = $(Test-Path $bDest)
 	If ($bDestExists) {
-		$script:bCount = (Get-ChildItem $bDest -Recurse -Filter *.sav*).Count
+		$script:bCount = (Get-ChildItem $bDest -File -Recurse -Exclude "Config","bLifetime.cfg","AstroneerBackup.ps1").Count
 	}
 	Else {
 		$script:bCount = 0
@@ -626,19 +620,26 @@ Function Enable-Backup {
 		#Start backup script.
 
 '#Astroneer Backup ' + $bVersion + '
+#Astroneer Backup 1.4
 #Task audit event 4688 for Astro.exe or Astro-UWP64-Shipping.exe invokes backup actions.
 
-#Declare paths, filter, and backup lifetime.
+#Declare paths and backup lifetime.
 $bSourceSteam = "$env:LOCALAPPDATA\Astro\Saved\SaveGames\"
+Write-Host "bSourceSteam =" $bSourceSteam
 If (Test-Path ((Get-ChildItem $env:LOCALAPPDATA\Packages\SystemEraSoftworks*\SystemAppData\wgs\ -Recurse -Filter container.*).FullName | Where-Object { Format-Hex $_ | Select-String S.A.V.E. } | Split-Path)) {
 	$bSourceUWP = (Get-ChildItem $env:LOCALAPPDATA\Packages\SystemEraSoftworks*\SystemAppData\wgs\ -Recurse -Filter container.*).FullName | Where-Object { Format-Hex $_ | Select-String S.A.V.E. } | Split-Path
+	Write-Host "bSourceUWP" = $bSourceUWP
 }
 $bDest = "$env:USERPROFILE\Saved Games\AstroneerBackup\"
+Write-Host "bDest =" $bDest
 $bConfig = $bDest + "Config\"
-$bFilter = "*"
-
+Write-Host "bConfig =" $bConfig
 $bLifetimeConfig = "$bConfig" + "bLifetime.cfg"
+Write-Host "bLifetimeConfig =" $bLifetimeConfig
 $bLifetime = (Get-Content $bLifetimeConfig)
+Write-Host "bLifetime =" $bLifetime
+$bFilter = "*.sav*"
+Write-Host "bFilter =" $bFilter
 
 #Declare game launch directory function for task auditing.
 Function Get-LaunchDirs {
@@ -646,19 +647,24 @@ Function Get-LaunchDirs {
 	#Check the Steam library first.
 	If ($(Test-Path HKLM:\SOFTWARE\WOW6432Node\Valve\Steam)) {
 		$script:SteamPath = (Get-ItemProperty -Path HKLM:\SOFTWARE\WOW6432Node\Valve\Steam -Name InstallPath).InstallPath
+		Write-Host "SteamPath =" $SteamPath
 	}
 	If (Test-Path ("$SteamPath" + "\steamapps\common\ASTRONEER\Astro.exe")) {
 		$script:gLaunchDirSteam = "$SteamPath" + "\steamapps\common\ASTRONEER\Astro.exe"
+		Write-Host "SteamPath =" $SteamPath
 	}
 	If (Test-Path ("$SteamPath" + "\steamapps\common\ASTRONEER Early Access\Astro.exe")) {
 		$script:gLaunchDirSteam = "$SteamPath" + "\steamapps\common\ASTRONEER Early Access\Astro.exe"
+		Write-Host "SteamPath =" $SteamPath
 	}
 	If ([bool](Get-Process -Name Astro -ErrorAction SilentlyContinue).Path) {
 		$script:gLaunchDirSteam = (Get-Process -Name Astro -ErrorAction SilentlyContinue).Path
+		Write-Host "gLaunchDirSteam =" $gLaunchDirSteam
 	}
 	#Check the Microsoft Store packages next.
 	If (Test-Path $(Get-AppxPackage SystemEraSoftworks*).InstallLocation) {
 		$script:gLaunchDirUWP = $(Get-AppxPackage SystemEraSoftworks*).InstallLocation + "\Astro\Binaries\UWP64\Astro-UWP64-Shipping.exe"
+		Write-Host "gLaunchDirUWP =" $gLaunchDirUWP
 	}
 	#If game process is not found, launch it to find it.
 	If ($script:gInstalledSteam -And (![bool]$script:gLaunchDirSteam))  {
@@ -693,12 +699,6 @@ Function Get-LaunchDirs {
 		Stop-Process -Name Astro-Win64-Shipping -ErrorAction SilentlyContinue
 		Stop-Process -Name Astro-UWP64-Shipping -ErrorAction SilentlyContinue
 	}
-	If (Test-Path ((Split-Path $gLaunchDirSteam) + "\build.version")) {
-		$script:gVersionSteam = ((Get-Content ((Split-Path $gLaunchDirSteam) + "\build.version") -Delimiter " ")[0] -replace " ","")
-	}
-	If ([bool]$(Get-AppxPackage SystemEraSoftworks*).Version) {
-		$script:gVersionUWP = $(Get-AppxPackage SystemEraSoftworks*).Version
-	}
 }
 
 #Declare game version function.
@@ -706,28 +706,40 @@ Function Get-GameVersions {
 	If ([bool]$gLaunchDirSteam) {
 		If (Test-Path ((Split-Path $gLaunchDirSteam -ErrorAction SilentlyContinue) + "\build.version")) {
 			$script:gVersionSteam = ((Get-Content ((Split-Path $gLaunchDirSteam) + "\build.version") -Delimiter " ")[0] -replace " ","")
+			Write-Host "gVersionSteam =" $gVersionSteam
 		}
 	}
 	If ([bool]$(Get-AppxPackage SystemEraSoftworks*).Version) {
 		$script:gVersionUWP = $(Get-AppxPackage SystemEraSoftworks*).Version
+		Write-Host "gVersionUWP =" $gVersionUWP
 	}
 }
 
 #If non-versioned saves exist, assume they were backed up by a pre-1.3 version of Astroneer Backup for Astroneer 1.0.15.0
-If ([bool](Get-ChildItem $bDest -File -Filter $bFilter)) {
+If ([bool](Get-ChildItem $bDest -File)) {
 	If (!(Test-Path ($bDest + "1.0.15.0" + "\"))) {
 		New-Item ($bDest + "1.0.15.0") -ItemType Directory
+		Write-Host "Made 1.0.15.0 folder"
 	}
-	Get-ChildItem $bDest -File -Filter $bFilter | Select-Object -ExpandProperty FullName | ForEach-Object {
+	Get-ChildItem $bDest -File | Select-Object -ExpandProperty FullName | ForEach-Object {
 	Move-Item $_ ($bDest + "1.0.15.0" + "\") -Force
+	Write-Host "Copied a file to 1.0.15.0 folder"
 	}
 }
 
-#Begin watcher.
-$sWatcher = New-Object IO.FileSystemWatcher $bSource, $bFilter -Property @{ 
+#Begin Steam watcher.
+$sWatcherSteam = New-Object IO.FileSystemWatcher $bSourceSteam, $bFilter -Property @{ 
 	EnableRaisingEvents = $true
 	IncludeSubdirectories = $false
 	NotifyFilter = [System.IO.NotifyFilters]::LastWrite
+}
+Write-Host "sWatcherSteam declared"
+
+#Begin UWP watchers.
+$sWatcherUWP = New-Object IO.FileSystemWatcher $bSourceUWP, * -Property @{ 
+	EnableRaisingEvents = $true
+	IncludeSubdirectories = $false
+	NotifyFilter = [System.IO.NotifyFilters]::FileName,[System.IO.NotifyFilters]::LastWrite,[System.IO.NotifyFilters]::LastAccess,[System.IO.NotifyFilters]::CreationTime,[System.IO.NotifyFilters]::DirectoryName
 }
 
 #Declare event handler actions.
@@ -735,36 +747,54 @@ $bAction = {
 	Get-LaunchDirs
 	Get-GameVersions
 	$cDate = Get-Date
+	Write-Host "cDate =" $cDate
 	$dDate = $cDate.AddDays(-$bLifetime)
+	Write-Host "dDate =" $dDate
 	$sGame = $Event.SourceEventArgs.Name
+	Write-Host "sGame =" $sGame
 	If ([bool](Get-Process Astro -ErrorAction SilentlyContinue)) {
 		$bFull = $bDest + $gVersionSteam + "\" + $sGame
+		Write-Host "bFull =" $bFull
 	}
 	If ([bool](Get-Process Astro-UWP64-Shipping -ErrorAction SilentlyContinue)) {
 		$bFull = $bDest + $gVersionUWP + "\" + $sGame
+		Write-Host "bFull =" $bFull
 	}
 	$bFullExists = $(Test-Path ($bFull))
+	Write-Host "bFullExists =" $bFullExists
 	#Check for version folder and write one if missing.
 	If (([bool](Get-Process Astro -ErrorAction SilentlyContinue)) -And !(Test-Path ($bDest + $gVersionSteam + "\"))) {
 		New-Item ($bDest + $gVersionSteam) -ItemType Directory
+		Write-Host "Created =" $bDest + $gVersionSteam
 	}
-	If (([bool](Get-Process Astro-UWP64-Shipping -ErrorAction SilentlyContinue)) -And !(Test-Path ($bDest + $gVersionSteam + "\"))) {
+	If (([bool](Get-Process Astro-UWP64-Shipping -ErrorAction SilentlyContinue)) -And !(Test-Path ($bDest + $gVersionUWP + "\"))) {
 		New-Item ($bDest + $gVersionUWP) -ItemType Directory
+		Write-Host "Created =" $bDest + $gVersionUWP
 	}
 	#Check for backup file and write one if missing.
-	If (!$bFullExists) {
-		Copy-Item "$bSource\$sGame" -Destination $bFull -Force
+	If (!$bFullExists -And [bool](Get-Process -Name Astro -ErrorAction SilentlyContinue).Path) {
+		Copy-Item "$bSourceSteam\$sGame" -Destination $bFull -Force
+		Write-Host "Copied Steam save from" $bSourceSteam\$sGame
+	}
+	If (!$bFullExists -And [bool](Get-Process -Name Astro-UWP64-Shipping -ErrorAction SilentlyContinue).Path -And $sGame -notmatch "\.") {
+		Copy-Item "$bSourceUWP\$sGame" -Destination $bFull -Force
+		Write-Host "Copied UWP save from" $bSourceUWP\$sGame
 	}
 	#Keep 10 backups per game, per game version, within the backup lifetime.
 	(Get-ChildItem $bDest -Recurse -File).Name -Replace ("\$.*","") | Select-Object -Unique | ForEach-Object {
 		Get-ChildItem $bDest -Recurse -File | Where-Object { $_.LastWriteTime -lt $dDate } | Sort-Object LastWriteTime -Desc | Select-Object -Skip 10 | Remove-Item -Force
+		Write-Host "Backups cleaned"
 	}
 }
 
 #Register the event handler.
 $Handler = . {
-	Register-ObjectEvent -InputObject $sWatcher -EventName Changed -SourceIdentifier AstroFSWChange -Action $bAction | Out-Null
+	Register-ObjectEvent -InputObject $sWatcherSteam -EventName Changed -SourceIdentifier AstroFSWChangeSteam -Action $bAction
+	Register-ObjectEvent -InputObject $sWatcherUWP -EventName Changed -SourceIdentifier AstroFSWChangeUWPChanged -Action $bAction
+	Register-ObjectEvent -InputObject $sWatcherUWP -EventName Created -SourceIdentifier AstroFSWChangeUWPCreated -Action $bAction
+	Register-ObjectEvent -InputObject $sWatcherUWP -EventName Renamed -SourceIdentifier AstroFSWChangeUWPRenamed -Action $bAction
 }
+Write-Host "Handler =" $Handler
 
 #Wait for the game to stop.
 Try {
@@ -774,15 +804,28 @@ Try {
 		Wait-Event -Timeout 1
 	}
 	Until (![bool](Get-Process -Name Astro -ErrorAction SilentlyContinue) -And ![bool](Get-Process -Name Astro-UWP64-Shipping -ErrorAction SilentlyContinue))
+	Write-Host "Game has closed"
 }
 
 #Unregister and dispose of active handlers and jobs.
 Finally
 {
-	Unregister-Event -SourceIdentifier AstroFSWChange
+	Unregister-Event -SourceIdentifier AstroFSWChangeSteam
+	Write-Host "Event AstroFSWChangeSteam unregistered"
+	Unregister-Event -SourceIdentifier AstroFSWChangeUWPChanged
+	Write-Host "Event AstroFSWChangeUWPChanged unregistered"
+	Unregister-Event -SourceIdentifier AstroFSWChangeUWPCreated
+	Write-Host "Event AstroFSWChangeUWPCreated unregistered"
+	Unregister-Event -SourceIdentifier AstroFSWChangeUWPRenamed
+	Write-Host "Event AstroFSWChangeUWPRenamed unregistered"
 	$Handler | Remove-Job
-	$sWatcher.EnableRaisingEvents = $false
-	$sWatcher.Dispose()
+	Write-Host "Jobs removed"
+	$sWatcherSteam.EnableRaisingEvents = $false
+	$sWatcherSteam.Dispose()
+	Write-Host "sWatcherSteam disposed"
+	$sWatcherUWP.EnableRaisingEvents = $false
+	$sWatcherUWP.Dispose()
+	Write-Host "sWatcherUWPChanged disposed"
 }'
 		#End backup script.
 
@@ -908,7 +951,7 @@ Function Disable-Backup {
 				}
 				$bChecked = $True
 				Write-Blank(1)
-				Write-Host -F RED "WARNING - ASTRONEER BACKUPS EXIST: $bDest.\*"
+				Write-Host -F RED "WARNING - ASTRONEER BACKUPS EXIST: $bDest*"
 				Write-Blank(1)
 				Write-Host -N -F RED "THIS CANNOT BE UNDONE: "; Write-Host -N -F YELLOW "Would you like to DELETE BACKUPS Y/(N)?"
 				$Choice = Read-Host
@@ -930,7 +973,7 @@ Function Disable-Backup {
 					Get-Prompt
 				}
 				"N|^$" {
-					Write-Host -F GREEN "ASTRONEER BACKUPS PRESERVED: $bDest.\*"
+					Write-Host -F GREEN "ASTRONEER BACKUPS PRESERVED: $bDest*"
 					Write-Blank(1)
 					Write-Host -N -F YELLOW "Press any key to CONTINUE..."
 					Get-Prompt
