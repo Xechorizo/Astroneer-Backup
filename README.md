@@ -1,5 +1,5 @@
 
-# [Download Astroneer Backup Version 1.3](AstroneerBackup.exe)
+# [Download Astroneer Backup Version 1.4](AstroneerBackup.exe)
 ###### [EXE Clean Scan](https://www.virustotal.com/en/file/7d3032b8169bb5d41106db408d10317ed70199e2fa7702b8f94e2b31135961c0/analysis/1557043972/)
 ###### SHA256: 7D3032B8169BB5D41106DB408D10317ED70199E2FA7702B8F94E2B31135961C0
 
@@ -9,7 +9,7 @@
 ![Screenshot](https://i.imgur.com/KoM2kto.png)
 
 ### Made by Xech
-- Written for Astroneer 1.0.15.0 on Steam - Authored May 2019
+- Written for Astroneer 1.2.8.0 on Steam - Authored June 2019
 
 ## Readme
 ### What does it do?
@@ -32,27 +32,19 @@
 ### How does it work?
 - A backup folder and backup script are created.
 - A scheduled task is created that invokes the script.
-- The task is triggered when the Astro.exe is launched.
-- The backup script copies .savegame files when changed.
+- The task is triggered when the Astroneer is launched.
+- The backup script copies save files when changed.
 - Backups older than the backup lifetime are deleted.
 
 ## Change Log
-#### 1.1
-- Added .exe packaging
-- Added configurable backup lifetime
-- Added common install locations and game launch for unusual paths
-- Improved file handling
-- Improved the Main Menu
-- Replaced "install"/"uninstall" with "enable"/"disable"
-- Replaced Intro with Readme and Credits
-
-#### 1.2
-- Added support for Early Acces binary paths
-- Consolidated tasks
-- Imporoved backups to always keep 10 
-- Improved task game detection
-- Improved elevation checks
-- Improved escapes for task script launch
+#### 1.4
+- Added support for Microsoft Store version (Windows 10 1809+ UWP)
+- Added configuration of backup destination
+- Added additional credits
+- Improved save file filtering
+- Improved null path testing
+- Improved default backup lifetime (30 days now 14 days)
+- Improved menu title
 - Improved Readme
 
 #### 1.3
@@ -65,14 +57,33 @@
 - Improved launch directory logic
 - Removed changelog and consolidated versioning within the script
 
+#### 1.2
+- Added support for Early Acces binary paths
+- Consolidated tasks
+- Imporoved backups to always keep 10 
+- Improved task game detection
+- Improved elevation checks
+- Improved escapes for task script launch
+- Improved Readme
+
+#### 1.1
+- Added .exe packaging
+- Added configurable backup lifetime
+- Added common install locations and game launch for unusual paths
+- Improved file handling
+- Improved the Main Menu
+- Replaced "install"/"uninstall" with "enable"/"disable"
+- Replaced Intro with Readme and Credits
+
+#### 1.0
+- Initial release
+
 #### Future:
-- Automatically update
-- Add support for Microsoft Store version
 - Add backup throttle
 - Add disk space check
-- Move enable/disable operations to functions
+- Automatically update
+- Check all Steam libraries
 
 ## Disclosure
 ### *MAKE MANUAL BACKUPS PRIOR TO USE*
-### *ONLY TESTED WITH STEAM VERSION*
 ### *PROVIDED AS-IS WITH NO GUARANTEE EXPRESS OR IMPLIED*
