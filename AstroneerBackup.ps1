@@ -5,11 +5,6 @@
 #ONLY TESTED WITH STEAM VERSION
 #PROVIDED AS-IS WITH NO GUARANTEE EXPRESS OR IMPLIED
 
-#Check here for non-standard Steam libraries.
-	#$((Get-ItemProperty -Path HKLM:\SOFTWARE\WOW6432Node\Valve\Steam -Name InstallPath).InstallPath + "\steamapps\libraryfolders.vdf")
-
-#Use this for selecting backup folder
-
 #Astroneer Backup Version
 $bVersion = "1.4"
 
@@ -29,26 +24,6 @@ Function Write-Blank($Count) {
 	}
 }
 
-#Self-elevate the script, if required.
-# If (!([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] 'Administrator')) {
-# 	If ([int](Get-CimInstance -Class Win32_OperatingSystem | Select-Object -ExpandProperty BuildNumber) -ge 6000) {
-# 	 $CommandLine = "-File `"" + $MyInvocation.MyCommand.Path + "`" " + $MyInvocation.UnboundArguments
-# 	 Start-Process -FilePath PowerShell.exe -Verb Runas -ArgumentList $CommandLine
-# 	 Exit
-# 	}
-# }
-
-#Advise if elevation is needed.
-$cPrinc = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
-If (!$cPrinc.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
-	Clear-Host
-	Write-Host -F RED "Administrator privileges are REQUIRED."
-	Write-Blank(1)
-	Write-Host -F RED "Right-click the executable and choose `"Run as administrator`"."
-	Get-Prompt
-	Exit
-}
-
 #Declare variables.
 
 #Disabled path declarations.
@@ -56,8 +31,10 @@ If (!$cPrinc.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
 
 #Declare savegame locations.
 $bSourceSteam = "$env:LOCALAPPDATA\Astro\Saved\SaveGames\"
+$bSourceSteamExists = $(Test-Path $bSourceSteam)
 If (Test-Path ((Get-ChildItem $env:LOCALAPPDATA\Packages\SystemEraSoftworks*\SystemAppData\wgs\ -Recurse -Filter container.*).FullName | Where-Object { Format-Hex $_ | Select-String S.A.V.E. } | Split-Path)) {
 	$bSourceUWP = (Get-ChildItem $env:LOCALAPPDATA\Packages\SystemEraSoftworks*\SystemAppData\wgs\ -Recurse -Filter container.*).FullName | Where-Object { Format-Hex $_ | Select-String S.A.V.E. } | Split-Path
+	$bSourceUWPExists = $True
 }
 
 #Declare default savegames backup location.
@@ -80,16 +57,24 @@ $bTaskNameUWP = "AstroneerBackupUWP"
 #Declare game location for task auditing.
 Function Get-LaunchDirs {
 	$sLaunched = $False
-	#Check the default Steam library first.
+	#Check default Steam library first.
 	If ($(Test-Path HKLM:\SOFTWARE\WOW6432Node\Valve\Steam)) {
 		$script:SteamPath = (Get-ItemProperty -Path HKLM:\SOFTWARE\WOW6432Node\Valve\Steam -Name InstallPath).InstallPath
+		If (Test-Path ("$SteamPath" + "\steamapps\common\ASTRONEER*\Astro.exe")) {
+			$script:gLaunchDirSteam = (Resolve-Path ("$SteamPath" + "\steamapps\common\ASTRONEER*\Astro.exe")).Path
+			$script:SteamLib = $SteamPath
+		}
+		#Check other Steam libraries second.
+		If (!$script:gLaunchDirSteam) {
+			$(Get-Content ((Get-ItemProperty -Path HKLM:\SOFTWARE\WOW6432Node\Valve\Steam -Name InstallPath).InstallPath + "\steamapps\libraryfolders.vdf")) -Split '\"' -Replace "\\\\","\" | Where-Object { $_ -Match '^[A-Za-z]\:\\.*$' } | ForEach-Object {
+				If (Test-Path ("$_" + "\steamapps\common\ASTRONEER*\Astro.exe")) {
+					$script:SteamLib = $_
+					$script:gLaunchDirSteam = (Resolve-Path ("$_" + "\steamapps\common\ASTRONEER*\Astro.exe")).Path
+				}
+			}
+		}
 	}
-	If (Test-Path ("$SteamPath" + "\steamapps\common\ASTRONEER\Astro.exe")) {
-		$script:gLaunchDirSteam = "$SteamPath" + "\steamapps\common\ASTRONEER\Astro.exe"
-	}
-	If (Test-Path ("$SteamPath" + "\steamapps\common\ASTRONEER Early Access\Astro.exe")) {
-		$script:gLaunchDirSteam = "$SteamPath" + "\steamapps\common\ASTRONEER Early Access\Astro.exe"
-	}
+	#Check if Steam version of Astroneer is running to get path.
 	If ([bool](Get-Process -Name Astro -ErrorAction SilentlyContinue).Path) {
 		$script:gLaunchDirSteam = (Get-Process -Name Astro -ErrorAction SilentlyContinue).Path
 	}
@@ -264,11 +249,11 @@ Function Get-GameInstalled {
 	}
 	While (!($bSourceSteamExists) -And !($bSourceUWPExists)) {
 		Clear-Host
-		Write-Host -F RED "Astroneer savegame folder MISSING:" $bSource
+		Write-Host -F RED "Astroneer savegame folder MISSING:" $bSourceSteam
 		Write-Blank(1)
-		Write-Host -F RED "Astroneer savegame folder MISSING:" $env:LOCALAPPDATA\Packages\SystemEraSoftworks*\SystemAppData\wgs\
+		Write-Host -F RED "Astroneer savegame folder MISSING:" $bSourceUWP
 		Write-Blank(1)
-		Write-Host "INSTALL Astroneer from Steam or Microsoft Store and CREATE a savegame"
+		Write-Host "INSTALL Astroneer from Steam or Microsoft Store and CREATE a savegame."
 		Write-Blank(4)
 		Do {
 			Write-Host -N -F YELLOW "Would you like to CONTINUE anyway Y/(N)? "
@@ -283,10 +268,7 @@ Function Get-GameInstalled {
 			Until ($Ok)
 		Switch -Regex ($Choice) {
 			"Y" {
-				$script:gInstalled = $False
 				Clear-Host
-				Export-Task
-				Get-Done
 			}
 			"N|^$" {
 				Clear-Host
@@ -315,11 +297,15 @@ Function Get-AltTab {
 #Disable old versions of Astroneer Backup
 Function Get-UpgradeNeeded {
 	Get-Done
-	While ([bool]($bSciptExists) -And (!(Get-Content $bScript)[0].Contains($bVersion))) {
-		Write-Host -N -F RED "WARNING - ASTRONEER BACKUP MISMATCH: "; Write-Host -F YELLOW "Latest: $bVersion"
-		Write-Blank(8)
+	While (((Test-Path "$env:USERPROFILE\Saved Games\AstroneerBackup\Config\AstroneerBackup.ps1") -And !(Get-Content "$env:USERPROFILE\Saved Games\AstroneerBackup\Config\AstroneerBackup.ps1")[0].Contains($bVersion)) -Or ([bool]($bScriptExists) -And (!(Get-Content $bScript)[0].Contains($bVersion)))) {
+		$OldVersion = (Get-Content "$env:USERPROFILE\Saved Games\AstroneerBackup\Config\AstroneerBackup.ps1")[0]
+		Write-Host -F RED "WARNING - ASTRONEER BACKUP VERSION MISMATCH"
+		Write-Blank(1)
+		Write-Host -F YELLOW "This version: " -N; Write-Host -F GREEN "#Astroneer Backup $bVersion"
+		Write-Host -F YELLOW "Installed version: " -N; Write-Host -F RED $OldVersion
+		Write-Blank(5)
 		Do {
-			Write-Host -N -F YELLOW "You must first DISABLE this version (Y)/N? "
+			Write-Host -N -F YELLOW "Would you like to DISABLE, EXIT, and try again Y/(N)? "
 			$Choice = Read-Host
 			$Ok = $Choice -match '^[yn]+$|^$'
 			If (-not $Ok) {
@@ -330,10 +316,11 @@ Function Get-UpgradeNeeded {
 		}
 		Until ($Ok)
 		Switch -Regex ($Choice) {
-			"Y|^$" {
-				Disable-Backup
+			"Y" {
+				Clear-Host
+				Disable-Backup-1.3
 			}
-			"N" {
+			"N|^$" {
 				Clear-Host
 				Exit
 			}
@@ -348,8 +335,8 @@ Function Write-MainMenu {
 		Get-Done
 		Write-Host -F GREEN "= = = = = = = = = = = = = = = = Astroneer Backup $bVersion = = = = = = = = = = = = = = = ="
 		Write-Host -F WHITE "Backup ENABLED: " -N; Write-Highlight($AllDone)
-		Write-Host -F WHITE "Steam Version: " -N; If ($gInstalledSteam) {Write-Host -F GREEN "$gVersionSteam"} Else {Write-Host -F RED "N/A"}
-		Write-Host -F WHITE "Microsoft Store Version: " -N; If ($gInstalledUWP) {Write-Host -F GREEN "$gVersionUWP"} Else {Write-Host -F RED "N/A"}
+		Write-Host -F WHITE "Steam Version: " -N; If ($gInstalledSteam) {Write-Host -F GREEN "$gVersionSteam" `($SteamLib`) <#`($gLaunchDirSteam`)#>} Else {Write-Host -F RED "N/A" <#`($gLaunchDirSteam`)#>}
+		Write-Host -F WHITE "Microsoft Store Version: " -N; If ($gInstalledUWP) {Write-Host -F GREEN "$gVersionUWP" <#`($gLaunchDirUWP`)#>} Else {Write-Host -F RED "N/A" <#`($gLaunchDirUWP`)#>}
 		Write-Host -F WHITE "Backup CONFIGURATION: " -N; If ($bConfigExists) {Write-Host -F GREEN "$bConfig"} Else {Write-Host -F RED "$bConfig"}
 		Write-Host -F WHITE "Backup DESTINATION: " -N; If ($bDestExists) {Write-Host -F GREEN "$bDest"} Else {Write-Host -F RED "$bDest"}
 		Write-Host -F WHITE "Backup LIFETIME: " -N; If ($bLifetimeConfigExists) {Write-Host -F GREEN "$bLifetime" -N} Else {Write-Host -F RED "$bLifetime" -N}; Write-Host -F WHITE " Days"
@@ -1137,6 +1124,181 @@ Function Disable-Backup {
 	}
 }
 
+Function Disable-Backup-1.3 {
+	Clear-Host
+	#Declare savegames location.
+	$bSource = "$env:LOCALAPPDATA\Astro\Saved\SaveGames\"
+
+	#Declare savegames backup location.
+	$bDest = "$env:USERPROFILE\Saved Games\AstroneerBackup\"
+
+	#Declare backup script name, path, and full path.
+	$bScriptName = "AstroneerBackup.ps1"
+	$bConfig = $bDest + "Config\"
+	$bScript = $bConfig + $bScriptName
+
+	#Declare backup lifetime config path. 
+	$bLifetimeConfig = "$bConfig" + "bLifetime.cfg"
+
+	#Declare task audit export, task names, and combinations.
+	#These prevent the script from running unless the game is also running. You're welcome.
+	$bTaskAudit = "$env:TEMP\secpol.cfg"
+	$bTaskName = "AstroneerBackup"
+
+	Function Get-Done-1.3 {
+		$script:bSourceExists = $(Test-Path $bSource)
+		$script:bDestExists = $(Test-Path $bDest)
+		If ($bDestExists) {
+			$script:bCount = (Get-ChildItem $bDest -Recurse -Filter *.sav*).Count
+		}
+		Else {
+			$script:bCount = 0
+		}
+		$script:bConfigExists = $(Test-Path $bConfig)
+		$script:bScriptExists = $(Test-Path $bScript)
+		$script:bLifetimeConfigExists = $(Test-Path $bLifetimeConfig)
+		If ($bLifetimeConfigExists) {
+			[Int]$script:bLifetime = (Get-Content $bLifetimeConfig)
+		}
+		Else {
+			[Int]$script:bLifetime = 30
+		}
+		Export-Task
+		$script:bTaskAuditExists = $(Test-Path $bTaskAudit) -And $([bool](Select-String -Path "$bTaskAudit" -Pattern 'AuditProcessTracking = 1'))
+		$script:bTaskExists = $([bool](Get-ScheduledTask | Where-Object {$_.TaskName -like $bTaskName}))
+		$script:AllDone = $($bDestExists -And $bConfigExists -And $bScriptExists -And $bTaskAuditExists -And $bTaskExists)
+		$script:AllUndone = $(!($bDestExists -Or $bConfigExists -Or $bScriptExists -Or $bTaskAuditExists -Or $bTaskExists))
+	}
+	Get-Done-1.3
+
+	If ($bTaskExists) {
+	Write-Host -F YELLOW "DELETING Astroneer backup task:" $bTaskName
+	Unregister-ScheduledTask -TaskName "$bTaskName" -Confirm:$False | Out-Null
+	Get-Done-1.3
+		If ($bTaskExists) {
+			Write-Host -F RED "ERROR deleting Astroneer backup task:" $bTaskName
+			Get-Done-1.3
+			Write-Blank(1)
+		}
+		If (!($bTaskExists)) {
+			Write-Host -F GREEN "DELETED Astroneer backup task:" $bTaskName
+			Get-Done-1.3
+			Write-Blank(1)
+		}
+	}
+
+	If ($bTaskAuditExists) {
+		Write-Host -F YELLOW "DELETING Astroneer backup task audit:" $bTaskAudit
+		Export-Task
+		(Get-Content $bTaskAudit).replace('AuditProcessTracking = 1','AuditProcessTracking = 0') | Out-File $bTaskAudit
+		secedit /configure /db c:\windows\security\local.sdb /cfg $bTaskAudit /areas SECURITYPOLICY | Out-Null
+		Export-Task
+		Get-Done-1.3
+		If ($bTaskAuditExists) {
+			Write-Host -F RED "ERROR deleting Astroneer backup task audit:" $bTaskAudit
+			Get-Done-1.3
+			Write-Blank(1)
+		}
+		If (!($bTaskAuditExists)) {
+			Write-Host -F GREEN "DELETED Astroneer backup task audit:" $bTaskAudit
+			Get-Done-1.3
+			Write-Blank(1)
+		}
+	}
+
+	If ($bConfigExists) {
+		Write-Host -F YELLOW "DELETING Astroneer backup config:" $bConfig
+		Remove-Item -Path $bConfig -Recurse -Force -Confirm:$False -ErrorAction SilentlyContinue | Out-Null
+		Get-Done-1.3
+		If ($bConfigExists) {
+			Write-Host -F RED "ERROR deleting Astroneer backup config:" $bConfig
+			Get-Done-1.3
+			Write-Blank(1)
+		}
+		If (!($bConfigExists)) {
+			Write-Host -F GREEN "DELETED Astroneer backup config:" $bConfig
+			Get-Done-1.3
+			Write-Blank(1)
+		}
+		Write-Host -N -F YELLOW "Press any key to CONTINUE..."
+		Get-Prompt
+	}
+	
+
+
+	If ($bDestExists) {
+		Clear-Host
+		Get-Done-1.3
+		Write-Host -F YELLOW "CHECKING for Astroneer backups: $bDest.\*.sav*"
+		$bChecked = $False
+		While (($(Get-ChildItem $bDest -Filter *.sav* -Recurse).Count -gt 0) -And !$bChecked) {
+			Do {
+				While ([bool](Get-ChildItem $bDest -Recurse | Where-Object { (Get-ChildItem $_.FullName).Count -eq 0 })) {
+					Get-ChildItem $bDest -Recurse | Where-Object { (Get-ChildItem $_.FullName).Count -eq 0 } | Select-Object -ExpandProperty FullName | ForEach-Object {
+						Remove-Item $_ -Force
+					}
+				}
+				$bChecked = $True
+				Write-Blank(1)
+				Write-Host -F RED "WARNING - ASTRONEER BACKUPS EXIST: $bDest.\*.sav*"
+				Write-Blank(1)
+				Write-Host -N -F RED "THIS CANNOT BE UNDONE: "; Write-Host -N -F YELLOW "Would you like to DELETE BACKUPS Y/(N)?"
+				$Choice = Read-Host
+				$Ok = $Choice -match '^[yn]+$|^$'
+				Write-Blank(1)
+				If (-not $Ok) {
+					Write-Blank(1)
+					Write-Host -F RED "Invalid choice..."
+					Write-Blank(1)
+				}
+			}
+			Until ($Ok)
+			Switch -Regex ($Choice) {
+				"Y" {
+					Write-Host -F RED "ASTRONEER BACKUPS DELETED:" $bDest
+					Write-Blank(1)
+					Remove-Item -Path $bDest -Recurse -Force -Confirm:$False
+					Write-Host -N -F YELLOW "Press any key to CONTINUE..."
+					Get-Prompt
+				}
+				"N|^$" {
+					Write-Host -F GREEN "ASTRONEER BACKUPS PRESERVED: $bDest.\*.sav*"
+					Write-Blank(1)
+					Write-Host -N -F YELLOW "Press any key to CONTINUE..."
+					Get-Prompt
+				}
+			}
+		}
+		Get-Done-1.3
+		If ($bDestExists -And ($(Get-ChildItem $bDest -Recurse -Filter *.sav*).Count -eq 0)) {
+			Write-Host -F GREEN "NO Astroneer backups found: $bDest*.sav*"
+			Write-Blank(1)
+			Write-Host -F YELLOW "DELETING empty Astroneer backup folder:" $bDest
+			Remove-Item -Path $bDest -Force -Recurse -Confirm:$False | Out-Null
+			Get-Done-1.3
+			If ($bDestExists) {
+				Write-Host -F RED "ERROR deleting empty Astroneer backup folder:" $bDest
+			}
+			Else {
+				Write-Host -F GREEN "DELETED empty Astroneer backup folder:" $bDest
+			}
+			Write-Blank(1)
+			Write-Host -N -F YELLOW "Press any key to CONTINUE..."
+			Get-Prompt
+		}
+	}
+	Clear-Host
+	Write-Host -F GREEN "DISABLED: $OldVersion"
+	Write-Blank(1)
+	Write-Host -F White "Please EXIT and try again."
+	Write-Blank(1)
+	Write-Host -N -F YELLOW "Press any key to EXIT..."
+	Get-Prompt
+	Clear-Host
+	Exit
+}
+
+
 #HAIL LORD ZEBRA!
 Function Write-Zebra([char[]]$Text) {
     For ($i = 0; $i -lt $Text.Length; $i++) {
@@ -1151,11 +1313,9 @@ Function Write-Zebra([char[]]$Text) {
 
 #Begin the script.
 Clear-Host
-Export-Task
 Get-Done
+Get-UpgradeNeeded
 Get-GameInstalled
 Get-LaunchDirs
 Get-GameVersions
-Get-UpgradeNeeded
 Write-MainMenu
-Set-BackupFolder
