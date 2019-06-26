@@ -9,13 +9,13 @@
 ![Screenshot](https://i.imgur.com/GlGIWFI.png)
 
 ### Made by Xech
-- Written for Astroneer 1.2.9.0 on Steam - Authored June 2019
+- Written for Astroneer 1.2.9.0 on Steam and Microsoft Store - Authored June 2019
 
 ## Readme
 ### What does it do?
 - This tool backs up Astroneer saves while Astroneer is running.
 - When Astroneer closes, it stops watching for changes.
-- You can choose how long you want backups to be kept.
+- You can choose where and how long you want backups to be kept.
 - The Astroneer install is not changed in any way by this tool.
 - When saves are backed up, they're copied here by default: **%userprofile%\Saved Games\AstroneerBackup**
 
