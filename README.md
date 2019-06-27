@@ -1,58 +1,54 @@
-# [Download Astroneer Backup Version 1.3](AstroneerBackup.exe)
-###### [EXE Clean Scan](https://www.virustotal.com/en/file/7d3032b8169bb5d41106db408d10317ed70199e2fa7702b8f94e2b31135961c0/analysis/1557043972/)
-###### SHA256: 7D3032B8169BB5D41106DB408D10317ED70199E2FA7702B8F94E2B31135961C0
 
-###### [PS1 Clean Scan](https://www.virustotal.com/en/file/56923c5ba052420a83563323ae00aa710d01ffc8e96937ac29f4753cc25ff3dd/analysis/1557043980/)
-###### SHA256: 56923C5BA052420A83563323AE00AA710D01FFC8E96937AC29F4753CC25FF3DD
+# [Download Astroneer Backup Version 1.4](https://github.com/Xechorizo/Astroneer-Backup/blob/master/AstroneerBackup.exe)
+###### [EXE Clean Scan](https://www.virustotal.com/gui/file/aa9caf39beeb5c7d7c6dcb08814d8d59915c6e1673fc9910e5d569b43c3220d1/detection)
+###### SHA256: aa9caf39beeb5c7d7c6dcb08814d8d59915c6e1673fc9910e5d569b43c3220d1
 
-![Screenshot](https://i.imgur.com/KoM2kto.png)
+###### [PS1 Clean Scan](https://www.virustotal.com/gui/file/72cfceba0ee91558c5e9a0268141a28a8161d48b22acca8192243bd888167db5/detection)
+###### SHA256: 72cfceba0ee91558c5e9a0268141a28a8161d48b22acca8192243bd888167db5
+
+![Screenshot](https://i.imgur.com/GlGIWFI.png)
 
 ### Made by Xech
-- Written for Astroneer 1.0.15.0 on Steam - Authored May 2019
+- Written for Astroneer 1.2.9.0 on Steam and Microsoft Store - Authored June 2019
 
 ## Readme
 ### What does it do?
 - This tool backs up Astroneer saves while Astroneer is running.
 - When Astroneer closes, it stops watching for changes.
-- You can choose how long you want backups to be kept.
+- You can choose where and how long you want backups to be kept.
 - The Astroneer install is not changed in any way by this tool.
-- When saves are backed up, they're copied here: **%userprofile%\Saved Games\AstroneerBackup**
+- When saves are backed up, they're copied here by default: **%userprofile%\Saved Games\AstroneerBackup**
 
 ### How do I use it?
-- Astroneer Backup is best run from the [.EXE](https://www.virustotal.com/en/file/660b07cad89b8201902c70f7738154b12c87a211c0173288b863d757e0f496b5/analysis/1556963295/).
-- You can examine the code using the included [.PS1](https://www.virustotal.com/en/file/660b07cad89b8201902c70f7738154b12c87a211c0173288b863d757e0f496b5/analysis/1556963295/).
+- Astroneer Backup is best run from the [.EXE](https://github.com/Xechorizo/Astroneer-Backup/blob/master/AstroneerBackup.exe).
+- You can examine the code using the included [.PS1](https://github.com/Xechorizo/Astroneer-Backup/blob/master/AstroneerBackup.ps1).
 - It must be run as **Administrator**. It will try to ensure this.
-- To enable backup, type 1 and Enter at the Main Menu.
-- To disable backup, type 2 and Enter at the Main Menu.
-- To open the backup folder, type 3 and Enter at the Main Menu.
-- Backups are kept for 30 days by default. 10 backups are always kept.
+- To enable backup, type **1** and Enter at the Main Menu.
+- To disable backup, type **2** and Enter at the Main Menu.
+- To open the backup folder, type **3** and Enter at the Main Menu.
+- Backups are kept for **14** days by default. **10** backups are always kept.
 - Backup will only work if this appears in the Main Menu: **Backup ENABLED: True**
 
 ### How does it work?
 - A backup folder and backup script are created.
 - A scheduled task is created that invokes the script.
-- The task is triggered when the Astro.exe is launched.
-- The backup script copies .savegame files when changed.
+- The task is triggered when the Astroneer is launched.
+- The backup script copies save files when changed.
 - Backups older than the backup lifetime are deleted.
 
 ## Change Log
-#### 1.1
-- Added .exe packaging
-- Added configurable backup lifetime
-- Added common install locations and game launch for unusual paths
-- Improved file handling
-- Improved the Main Menu
-- Replaced "install"/"uninstall" with "enable"/"disable"
-- Replaced Intro with Readme and Credits
-
-#### 1.2
-- Added support for Early Acces binary paths
-- Consolidated tasks
-- Imporoved backups to always keep 10 
-- Improved task game detection
-- Improved elevation checks
-- Improved escapes for task script launch
+#### 1.4
+- Added support for Microsoft Store version (Windows 10 1809+ UWP)
+- Added savegame folder shortcuts to backup destination
+- Added configuration of backup destination
+- Added support for all Steam libraries
+- Added additional credits
+- Improved save file filtering
+- Improved null path testing
+- Improved upgrade feature
+- Improved menu title
 - Improved Readme
+- Reduced default backup lifetime (30 days now 14 days)
 
 #### 1.3
 - Added Astroneer Backup upgrade functionality
@@ -64,14 +60,34 @@
 - Improved launch directory logic
 - Removed changelog and consolidated versioning within the script
 
+#### 1.2
+- Added support for Early Acces binary paths
+- Consolidated tasks
+- Imporoved backups to always keep 10 
+- Improved task game detection
+- Improved elevation checks
+- Improved escapes for task script launch
+- Improved Readme
+
+#### 1.1
+- Added .exe packaging
+- Added configurable backup lifetime
+- Added common install locations and game launch for unusual paths
+- Improved file handling
+- Improved the Main Menu
+- Replaced "install"/"uninstall" with "enable"/"disable"
+- Replaced Intro with Readme and Credits
+
+#### 1.0
+- Initial release
+
 #### Future:
-- Automatically update
-- Add support for Microsoft Store version
 - Add backup throttle
 - Add disk space check
-- Move enable/disable operations to functions
+- Add automatic updates
+- Add platform-specific subfolders to destination
+- Add savegame title subfolders to UWP destination
 
 ## Disclosure
 ### *MAKE MANUAL BACKUPS PRIOR TO USE*
-### *ONLY TESTED WITH STEAM VERSION*
 ### *PROVIDED AS-IS WITH NO GUARANTEE EXPRESS OR IMPLIED*
