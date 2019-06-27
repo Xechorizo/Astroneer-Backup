@@ -2,14 +2,13 @@
 #Made by Xech
 
 #MAKE MANUAL BACKUPS PRIOR TO USE
-#ONLY TESTED WITH STEAM VERSION
 #PROVIDED AS-IS WITH NO GUARANTEE EXPRESS OR IMPLIED
 
 #Astroneer Backup Version
-$bVersion = "1.4"
+$bVersion = "1.4.1"
 
-#Stop on error.
-$ErrorActionPreference = "Inquire"
+#Error prefernce.
+$ErrorActionPreference = "Stop"
 
 #Self-elevate the script, if required.
 If (!([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] 'Administrator')) {
@@ -34,6 +33,7 @@ If (!$cPrinc.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
 #Wait to receive any key from user.
 Function Get-Prompt {
 	cmd /c pause | Out-Null
+
 	#$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown')
 }
 
@@ -46,9 +46,6 @@ Function Write-Blank($Count) {
 
 #Declare variables.
 
-#Disabled path declarations.
-#$myPath = (Get-Item $MyInvocation.MyCommand.Path).DirectoryName
-
 #Declare savegame locations.
 $bSourceSteam = "$env:LOCALAPPDATA\Astro\Saved\SaveGames\"
 $bSourceSteamExists = $(Test-Path $bSourceSteam)
@@ -56,9 +53,6 @@ If (Test-Path ((Get-ChildItem $env:LOCALAPPDATA\Packages\SystemEraSoftworks*\Sys
 	$bSourceUWP = (Get-ChildItem $env:LOCALAPPDATA\Packages\SystemEraSoftworks*\SystemAppData\wgs\ -Recurse -Filter container.*).FullName | Where-Object { Format-Hex $_ | Select-String S.A.V.E. } | Split-Path
 	$bSourceUWPExists = $True
 }
-
-#Declare default savegames backup location.
-#$bDest = "$env:USERPROFILE\Saved Games\AstroneerBackup\"
 
 #Declare backup script name, path, and full path.
 $bScriptName = "AstroneerBackup.ps1"
@@ -77,6 +71,7 @@ $bTaskNameUWP = "AstroneerBackupUWP"
 #Declare game location for task auditing.
 Function Get-LaunchDirs {
 	$sLaunched = $False
+
 	#Check default Steam library first.
 	If ($(Test-Path HKLM:\SOFTWARE\WOW6432Node\Valve\Steam)) {
 		$script:SteamPath = (Get-ItemProperty -Path HKLM:\SOFTWARE\WOW6432Node\Valve\Steam -Name InstallPath).InstallPath
@@ -84,6 +79,7 @@ Function Get-LaunchDirs {
 			$script:gLaunchDirSteam = (Resolve-Path ("$SteamPath" + "\steamapps\common\ASTRONEER*\Astro.exe")).Path
 			$script:SteamLib = $SteamPath
 		}
+
 		#Check other Steam libraries second.
 		If (!$script:gLaunchDirSteam) {
 			$(Get-Content ((Get-ItemProperty -Path HKLM:\SOFTWARE\WOW6432Node\Valve\Steam -Name InstallPath).InstallPath + "\steamapps\libraryfolders.vdf")) -Split "\`"" -Replace "\\\\","\" | Where-Object { $_ -Match "^[A-Za-z]\:\\.*$" } | ForEach-Object {
@@ -94,20 +90,24 @@ Function Get-LaunchDirs {
 			}
 		}
 	}
+
 	#Check if Steam version of Astroneer is running to get path.
 	If ([bool](Get-Process -Name Astro -ErrorAction SilentlyContinue).Path) {
 		$script:gLaunchDirSteam = (Get-Process -Name Astro -ErrorAction SilentlyContinue).Path
 	}
+
 	#Check the Microsoft Store packages next.
 	If (Test-Path $(Get-AppxPackage SystemEraSoftworks*).InstallLocation) {
 		$script:gLaunchDirUWP = $(Get-AppxPackage SystemEraSoftworks*).InstallLocation + "\Astro\Binaries\UWP64\Astro-UWP64-Shipping.exe"
 	}
+
 	#If game process is not found, launch it to find it.
 	If ($script:gInstalledSteam -And (![bool]$script:gLaunchDirSteam))  {
 		Write-Host -F WHITE "Steam game not found in default location. Launching briefly to get path..."
 		explorer.exe steam://run/361420
 		$sLaunched = $True
 		Do {
+
 			#Wait for game to launch, trying to get path.
 			For ($i=0; $i -le 10; $i++) {
 				$script:gLaunchDirSteam = (Get-Process -Name Astro -ErrorAction SilentlyContinue).Path
@@ -121,6 +121,7 @@ Function Get-LaunchDirs {
 		Start-Process ("Shell:AppsFolder\" + $(Get-AppxPackage SystemEraSoftworks*).PackageFamilyName + "!ASTRONEER")
 		$sLaunched = $True
 		Do {
+
 			#Wait for game to launch, trying to get path.
 			For ($i=0; $i -le 10; $i++) {
 				$script:gLaunchDirUWP = (Get-Process -Name Astro-UWP64-Shipping -ErrorAction SilentlyContinue).Path
@@ -129,6 +130,7 @@ Function Get-LaunchDirs {
 		}
 		Until ([bool]$gLaunchDirSteam)
 	}
+
 	#If script launched the game, close it. Otherwise, leave your game running.
 	If ($sLaunched -And ([bool](Get-Process -Name Astro -ErrorAction SilentlyContinue) -Or [bool](Get-Process -Name Astro-UWP64-Shipping -ErrorAction SilentlyContinue))) {
 		Stop-Process -Name Astro -ErrorAction SilentlyContinue
@@ -170,7 +172,7 @@ Function Get-Done {
 			$script:bDestExists = $False
 	}
 	If ($bDestExists) {
-		$script:bCount = (Get-ChildItem $bDest -File -Recurse | Where-Object -Property FullName -match "^.*sav(egame)?$|^[A-Z0-9]{32}$").Count
+		$script:bCount = (Get-ChildItem $bDest -File -Recurse | Where-Object -Property FullName -match "^.*sav(egame)?$|\\[A-Z0-9]{32}$").Count
 		}
 		Else {
 		$script:bCount = 0
@@ -319,32 +321,34 @@ Function Get-AltTab {
 #Disable old versions of Astroneer Backup
 Function Get-UpgradeNeeded {
 	Get-Done
-	While (((Test-Path "$env:USERPROFILE\Saved Games\AstroneerBackup\Config\AstroneerBackup.ps1") -And !(Get-Content "$env:USERPROFILE\Saved Games\AstroneerBackup\Config\AstroneerBackup.ps1")[0].Contains($bVersion)) -Or ([bool]($bScriptExists) -And (!(Get-Content $bScript)[0].Contains($bVersion)))) {
-		$OldVersion = (Get-Content "$env:USERPROFILE\Saved Games\AstroneerBackup\Config\AstroneerBackup.ps1")[0]
-		Write-Host -F RED "WARNING - ASTRONEER BACKUP VERSION MISMATCH"
-		Write-Blank(1)
-		Write-Host -F YELLOW "This version: " -N; Write-Host -F GREEN "#Astroneer Backup $bVersion"
-		Write-Host -F YELLOW "Installed version: " -N; Write-Host -F RED $OldVersion
-		Write-Blank(5)
-		Do {
-			Write-Host -N -F YELLOW "Would you like to DISABLE, EXIT, and try again Y/(N)? "
-			$Choice = Read-Host
-			$Ok = $Choice -match '^[yn]+$|^$'
-			If (-not $Ok) {
-				Write-Blank(1)
-				Write-Host -F RED "Invalid choice..."
-				Write-Blank(1)
+	If (Test-Path "$env:USERPROFILE\Saved Games\AstroneerBackup\Config\AstroneerBackup.ps1") { 
+		If (!(Get-Content "$env:USERPROFILE\Saved Games\AstroneerBackup\Config\AstroneerBackup.ps1")[0].Contains($bVersion) -Or ([bool]($bScriptExists) -And (!(Get-Content $bScript)[0].Contains($bVersion)))) {
+			$OldVersion = (Get-Content "$env:USERPROFILE\Saved Games\AstroneerBackup\Config\AstroneerBackup.ps1")[0]
+			Write-Host -F RED "WARNING - ASTRONEER BACKUP VERSION MISMATCH"
+			Write-Blank(1)
+			Write-Host -F YELLOW "This version: " -N; Write-Host -F GREEN "#Astroneer Backup $bVersion"
+			Write-Host -F YELLOW "Installed version: " -N; Write-Host -F RED $OldVersion
+			Write-Blank(5)
+			Do {
+				Write-Host -N -F YELLOW "Would you like to DISABLE, EXIT, and try again Y/(N)? "
+				$Choice = Read-Host
+				$Ok = $Choice -match '^[yn]+$|^$'
+				If (-not $Ok) {
+					Write-Blank(1)
+					Write-Host -F RED "Invalid choice..."
+					Write-Blank(1)
+				}
 			}
-		}
-		Until ($Ok)
-		Switch -Regex ($Choice) {
-			"Y" {
-				Clear-Host
-				Disable-Backup-1.3
-			}
-			"N|^$" {
-				Clear-Host
-				Exit
+			Until ($Ok)
+			Switch -Regex ($Choice) {
+				"Y" {
+					Clear-Host
+					Disable-Backup-1.3
+				}
+				"N|^$" {
+					Clear-Host
+					Exit
+				}
 			}
 		}
 	}
@@ -506,7 +510,9 @@ Function Write-Task {
 		$Action = $TaskDefinition.Actions.Create(0)
 		$Action.Path = $Path
 		$Action.Arguments = $Arguments
+
 		
+
 		#Needs password? https://powershell.org/forums/topic/securing-password-for-use-with-registertaskdefinition/
 		$RootFolder.RegisterTaskDefinition($bTaskNameSteam, $TaskDefinition, 6, $env:USERNAME, $null, 3) | Out-Null
 	}
@@ -538,7 +544,9 @@ Function Write-Task {
 		$Action = $TaskDefinition.Actions.Create(0)
 		$Action.Path = $Path
 		$Action.Arguments = $Arguments
+
 		
+
 		#Needs password? https://powershell.org/forums/topic/securing-password-for-use-with-registertaskdefinition/
 		$RootFolder.RegisterTaskDefinition($bTaskNameUWP, $TaskDefinition, 6, $env:USERNAME, $null, 3) | Out-Null
 	}
@@ -647,6 +655,24 @@ Function Enable-Backup {
 				Get-Prompt
 				Clear-Host
 			}
+		}
+
+		#Set platform folders and shortcuts to save folders.
+		If ($gInstalledSteam) {
+			New-Item ($bDest + "Steam Backups\" + $gVersionSteam + "\") -ItemType Directory -Force | Out-Null
+			$WshShell = New-Object -comObject WScript.Shell
+			$Shortcut = $WshShell.CreateShortcut("$bDest\Astroneer Savegames Shortcut (Steam).lnk")
+			$Shortcut.TargetPath = "explorer"
+			$Shortcut.Arguments = "$bSourceSteam"
+			$Shortcut.Save() | Out-Null
+		}
+		If ($gInstalledUWP) {
+			New-Item ($bDest + "Microsoft Store Backups\" + $gVersionUWP + "\") -ItemType Directory -Force | Out-Null
+			$WshShell = New-Object -comObject WScript.Shell
+			$Shortcut = $WshShell.CreateShortcut("$bDest\Astroneer Savegames Shortcut (Microsoft Store).lnk")
+			$Shortcut.TargetPath = "explorer"
+			$Shortcut.Arguments = "$bSourceUWP"
+			$Shortcut.Save() | Out-Null
 		}
 	}
 
@@ -758,6 +784,7 @@ Function Enable-Backup {
 		$bScriptContent =
 
 '#Astroneer Backup ' + $bVersion + '
+
 #Task audit event 4688 for Astro.exe or Astro-UWP64-Shipping.exe invokes backup actions.
 
 #Declare paths and backup lifetime.
@@ -775,6 +802,7 @@ $bFilter = "*.sav*"
 #Declare game launch directory function for task auditing.
 Function Get-LaunchDirs {
 	$sLaunched = $False
+
 	#Check default Steam library first.
 	If ($(Test-Path HKLM:\SOFTWARE\WOW6432Node\Valve\Steam)) {
 		$script:SteamPath = (Get-ItemProperty -Path HKLM:\SOFTWARE\WOW6432Node\Valve\Steam -Name InstallPath).InstallPath
@@ -782,6 +810,7 @@ Function Get-LaunchDirs {
 			$script:gLaunchDirSteam = (Resolve-Path ("$SteamPath" + "\steamapps\common\ASTRONEER*\Astro.exe")).Path
 			$script:SteamLib = $SteamPath
 		}
+
 		#Check other Steam libraries second.
 		If (!$script:gLaunchDirSteam) {
 			$(Get-Content ((Get-ItemProperty -Path HKLM:\SOFTWARE\WOW6432Node\Valve\Steam -Name InstallPath).InstallPath + "\steamapps\libraryfolders.vdf")) -Split "\`"" -Replace "\\\\","\" | Where-Object { $_ -Match "^[A-Za-z]\:\\.*$" } | ForEach-Object {
@@ -792,19 +821,23 @@ Function Get-LaunchDirs {
 			}
 		}
 	}
+
 	#Check if Steam version of Astroneer is running to get path.
 	If ([bool](Get-Process -Name Astro -ErrorAction SilentlyContinue).Path) {
 		$script:gLaunchDirSteam = (Get-Process -Name Astro -ErrorAction SilentlyContinue).Path
 	}
+
 	#Check the Microsoft Store packages next.
 	If (Test-Path $(Get-AppxPackage SystemEraSoftworks*).InstallLocation) {
 		$script:gLaunchDirUWP = $(Get-AppxPackage SystemEraSoftworks*).InstallLocation + "\Astro\Binaries\UWP64\Astro-UWP64-Shipping.exe"
 	}
+
 	#If game process is not found, launch it to find it.
 	If ($script:gInstalledSteam -And (![bool]$script:gLaunchDirSteam))  {
 		explorer.exe steam://run/361420
 		$sLaunched = $True
 		Do {
+
 			#Wait for game to launch, trying to get path.
 			For ($i=0; $i -le 10; $i++) {
 				$script:gLaunchDirSteam = (Get-Process -Name Astro -ErrorAction SilentlyContinue).Path
@@ -817,6 +850,7 @@ Function Get-LaunchDirs {
 		Start-Process ("Shell:AppsFolder\" + $(Get-AppxPackage SystemEraSoftworks*).PackageFamilyName + "!ASTRONEER")
 		$sLaunched = $True
 		Do {
+
 			#Wait for game to launch, trying to get path.
 			For ($i=0; $i -le 10; $i++) {
 				$script:gLaunchDirUWP = (Get-Process -Name Astro-UWP64-Shipping -ErrorAction SilentlyContinue).Path
@@ -825,6 +859,7 @@ Function Get-LaunchDirs {
 		}
 		Until ([bool]$gLaunchDirSteam)
 	}
+
 	#If script launched the game, close it. Otherwise, leave your game running.
 	If ($sLaunched -And ([bool](Get-Process -Name Astro -ErrorAction SilentlyContinue) -Or [bool](Get-Process -Name Astro-UWP64-Shipping -ErrorAction SilentlyContinue))) {
 		Stop-Process -Name Astro -ErrorAction SilentlyContinue
@@ -845,16 +880,6 @@ Function Get-GameVersions {
 	}
 }
 
-#Clean up old and non-versioned saves.
-If ([bool](Get-ChildItem $bDest -File | Where-Object -Property FullName -match "^.*sav(egame)?$|\\[A-Z0-9]{32}$").FullName) {
-	If (!(Test-Path ($bDest + "1.0.15.0" + "\"))) {
-		New-Item ($bDest + "1.0.15.0") -ItemType Directory
-	}
-	(Get-ChildItem $bDest -File | Where-Object -Property FullName -match "^.*sav(egame)?$|\\[A-Z0-9]{32}$").FullName | ForEach-Object {
-	Move-Item $_ ($bDest + "1.0.15.0" + "\") -Force
-	}
-}
-
 #Begin Steam watcher.
 $sWatcherSteam = New-Object IO.FileSystemWatcher $bSourceSteam, $bFilter -Property @{ 
 	EnableRaisingEvents = $true
@@ -862,7 +887,7 @@ $sWatcherSteam = New-Object IO.FileSystemWatcher $bSourceSteam, $bFilter -Proper
 	NotifyFilter = [System.IO.NotifyFilters]::LastWrite
 }
 
-#Begin UWP watchers.
+#Begin UWP watcher.
 $sWatcherUWP = New-Object IO.FileSystemWatcher $bSourceUWP, * -Property @{ 
 	EnableRaisingEvents = $true
 	IncludeSubdirectories = $false
@@ -877,19 +902,21 @@ $bAction = {
 	$dDate = $cDate.AddDays(-$bLifetime)
 	$sGame = $Event.SourceEventArgs.Name
 	If ([bool](Get-Process Astro -ErrorAction SilentlyContinue)) {
-		$bFull = $bDest + $gVersionSteam + "\" + $sGame
+		$bFull = $bDest + "Steam Backups\" + $gVersionSteam + "\" + $sGame
 	}
 	If ([bool](Get-Process Astro-UWP64-Shipping -ErrorAction SilentlyContinue)) {
-		$bFull = $bDest + $gVersionUWP + "\" + $sGame
+		$bFull = $bDest + "Microsoft Store Backups\" + $gVersionUWP + "\" + $sGame
 	}
 	$bFullExists = $(Test-Path ($bFull))
+
 	#Check for version folder and write one if missing.
-	If (([bool](Get-Process Astro -ErrorAction SilentlyContinue)) -And !(Test-Path ($bDest + $gVersionSteam + "\"))) {
-		New-Item ($bDest + $gVersionSteam) -ItemType Directory
+	If (([bool](Get-Process Astro -ErrorAction SilentlyContinue)) -And !(Test-Path ($bDest + "Steam Backups\" + $gVersionSteam + "\"))) {
+		New-Item ($bDest + "Steam Backups\" + $gVersionSteam + "\") -ItemType Directory
 	}
-	If (([bool](Get-Process Astro-UWP64-Shipping -ErrorAction SilentlyContinue)) -And !(Test-Path ($bDest + $gVersionUWP + "\"))) {
-		New-Item ($bDest + $gVersionUWP) -ItemType Directory
+	If (([bool](Get-Process Astro-UWP64-Shipping -ErrorAction SilentlyContinue)) -And !(Test-Path ($bDest + "Microsoft Store Backups\" + $gVersionUWP + "\"))) {
+		New-Item ($bDest + "Microsoft Store Backups\" + $gVersionUWP + "\") -ItemType Directory
 	}
+
 	#Check for backup file and write one if missing.
 	If (!$bFullExists -And [bool](Get-Process -Name Astro -ErrorAction SilentlyContinue).Path) {
 		Copy-Item "$bSourceSteam\$sGame" -Destination $bFull -Force
@@ -897,6 +924,46 @@ $bAction = {
 	If (!$bFullExists -And [bool](Get-Process -Name Astro-UWP64-Shipping -ErrorAction SilentlyContinue).Path -And $sGame -notmatch "\.") {
 		Copy-Item "$bSourceUWP\$sGame" -Destination $bFull -Force
 	}
+
+	#Clean non-versioned saves.
+	If ([bool](Get-ChildItem $bDest -File | Where-Object -Property FullName -match "^.*sav(egame)?$").FullName) {
+		If (!(Test-Path ($bDest + "Steam Backups\Unknown Version\"))) {
+			New-Item ($bDest + "Steam Backups\Unknown Version\") -ItemType Directory -Force | Out-Null
+		}
+		(Get-ChildItem $bDest -File | Where-Object -Property FullName -match "^.*sav(egame)?$").FullName | ForEach-Object {
+			Move-Item $_ ($bDest + "Steam Backups\Unknown Version\") -Force | Out-Null
+		}
+	}
+	If ([bool](Get-ChildItem $bDest -File | Where-Object -Property FullName -match "\\[A-Z0-9]{32}$").FullName) {
+		If (!(Test-Path ($bDest + "Microsoft Store Backups\Unknown Version\"))) {
+			New-Item ($bDest + "Microsoft Store Backups\Unknown Version\") -ItemType Directory -Force | Out-Null
+		}
+		(Get-ChildItem $bDest -File | Where-Object -Property FullName -match "\\[A-Z0-9]{32}$").FullName | ForEach-Object {
+			Move-Item $_ ($bDest + "Microsoft Store Backups\Unknown Version\") -Force | Out-Null
+		}
+	}
+
+	#Clean old saves
+	If ([bool](Get-ChildItem $bDest -File -Recurse -Exclude ("*.lnk") | Where-Object { $_.DirectoryName -notmatch "\\Steam Backups|\\Microsoft Store Backups" -and $_.FullName -match "\\.*\..*\.*sav(egame)?$"}).FullName) {
+		(Get-ChildItem $bDest -File -Recurse -Exclude ("*.lnk") | Where-Object { $_.DirectoryName -notmatch "\\Steam Backups|\\Microsoft Store Backups" -and $_.FullName -match "\\.*\..*\.*sav(egame)?$"}) | ForEach-Object {
+			New-Item ($bDest + "Steam Backups\" + $_.Directory.BaseName) -ItemType Directory -Force | Out-Null
+			Move-Item $_ ($bDest + "Steam Backups\" + $_.Directory.BaseName + "\" + $_.Name) -Force | Out-Null
+		}
+	}
+	If ([bool](Get-ChildItem $bDest -File -Recurse -Exclude ("*.lnk") | Where-Object { $_.DirectoryName -notmatch "\\Steam Backups|\\Microsoft Store Backups" -and $_.FullName -match "\\.*\..*\\[A-Z0-9]{32}$"}).FullName) {
+		(Get-ChildItem $bDest -File -Recurse -Exclude ("*.lnk") | Where-Object { $_.DirectoryName -notmatch "\\Steam Backups|\\Microsoft Store Backups" -and $_.FullName -match "\\.*\..*\\[A-Z0-9]{32}$"}) | ForEach-Object {
+			New-Item ($bDest + "Microsoft Store Backups\" + $_.Directory.BaseName) -ItemType Directory -Force | Out-Null
+			Move-Item $_ ($bDest + "Microsoft Store Backups\" + $_.Directory.BaseName + "\" + $_.Name) -Force | Out-Null
+		}
+	}
+
+	#Clean empty folders
+	While (Get-ChildItem $bDest -Directory -Recurse | Where-Object { $_.GetFiles().Count -eq 0 -and $_.GetDirectories().Count -eq 0 -and $_.Name -notmatch "Steam Backups|Microsoft Store Backups" }) { 
+		(Get-ChildItem $bDest -Directory -Recurse | Where-Object { $_.GetFiles().Count -eq 0 -and $_.GetDirectories().Count -eq 0 -and $_.Name -notmatch "Steam Backups|Microsoft Store Backups"  }).FullName | ForEach-Object {
+			Remove-Item $_ -Force | Out-Null
+		}
+	}
+
 	#Keep 10 backups per game, per game version, within the backup lifetime.
 	(Get-ChildItem $bDest -Recurse -File -Exclude ("*.lnk")).Name -Replace ("\$.*","") | Select-Object -Unique | ForEach-Object {
 		Get-ChildItem $bDest -Recurse -File | Where-Object { $_.LastWriteTime -lt $dDate } | Sort-Object LastWriteTime -Desc | Select-Object -Skip 10 | Remove-Item -Force
@@ -974,36 +1041,50 @@ Finally
 		Get-Prompt
 	}
 
-	#Clean up old and non-versioned saves.
-	If ([bool](Get-ChildItem $bDest -File | Where-Object -Property FullName -match "^.*sav(egame)?$|\\[A-Z0-9]{32}$").FullName) {
-		If (!(Test-Path ($bDest + "1.0.15.0" + "\"))) {
-			New-Item ($bDest + "1.0.15.0") -ItemType Directory
+	#Clean non-versioned saves.
+	If ([bool](Get-ChildItem $bDest -File | Where-Object -Property FullName -match "^.*sav(egame)?$").FullName) {
+		If (!(Test-Path ($bDest + "Steam Backups\Unknown Version\"))) {
+			New-Item ($bDest + "Steam Backups\Unknown Version\") -ItemType Directory -Force | Out-Null
 		}
-		(Get-ChildItem $bDest -File | Where-Object -Property FullName -match "^.*sav(egame)?$|\\[A-Z0-9]{32}$").FullName | ForEach-Object {
-		Move-Item $_ ($bDest + "1.0.15.0" + "\") -Force
+		(Get-ChildItem $bDest -File | Where-Object -Property FullName -match "^.*sav(egame)?$").FullName | ForEach-Object {
+			Move-Item $_ ($bDest + "Steam Backups\Unknown Version\") -Force | Out-Null
 		}
 	}
+	If ([bool](Get-ChildItem $bDest -File | Where-Object -Property FullName -match "\\[A-Z0-9]{32}$").FullName) {
+		If (!(Test-Path ($bDest + "Microsoft Store Backups\Unknown Version\"))) {
+			New-Item ($bDest + "Microsoft Store Backups\Unknown Version\") -ItemType Directory -Force | Out-Null
+		}
+		(Get-ChildItem $bDest -File | Where-Object -Property FullName -match "\\[A-Z0-9]{32}$").FullName | ForEach-Object {
+			Move-Item $_ ($bDest + "Microsoft Store Backups\Unknown Version\") -Force | Out-Null
+		}
+	}
+
+	#Clean old saves
+	If ([bool](Get-ChildItem $bDest -File -Recurse -Exclude ("*.lnk") | Where-Object { $_.DirectoryName -notmatch "\\Steam Backups|\\Microsoft Store Backups" -and $_.FullName -match "\\.*\..*\.*sav(egame)?$"}).FullName) {
+		(Get-ChildItem $bDest -File -Recurse -Exclude ("*.lnk") | Where-Object { $_.DirectoryName -notmatch "\\Steam Backups|\\Microsoft Store Backups" -and $_.FullName -match "\\.*\..*\.*sav(egame)?$"}) | ForEach-Object {
+			New-Item ($bDest + "Steam Backups\" + $_.Directory.BaseName) -ItemType Directory -Force | Out-Null
+			Move-Item $_ ($bDest + "Steam Backups\" + $_.Directory.BaseName + "\" + $_.Name) -Force | Out-Null
+		}
+	}
+	If ([bool](Get-ChildItem $bDest -File -Recurse -Exclude ("*.lnk") | Where-Object { $_.DirectoryName -notmatch "\\Steam Backups|\\Microsoft Store Backups" -and $_.FullName -match "\\.*\..*\\[A-Z0-9]{32}$"}).FullName) {
+		(Get-ChildItem $bDest -File -Recurse -Exclude ("*.lnk") | Where-Object { $_.DirectoryName -notmatch "\\Steam Backups|\\Microsoft Store Backups" -and $_.FullName -match "\\.*\..*\\[A-Z0-9]{32}$"}) | ForEach-Object {
+			New-Item ($bDest + "Microsoft Store Backups\" + $_.Directory.BaseName) -ItemType Directory -Force | Out-Null
+			Move-Item $_ ($bDest + "Microsoft Store Backups\" + $_.Directory.BaseName + "\" + $_.Name) -Force | Out-Null
+		}
+	}
+
+	#Clean empty folders
+	While (Get-ChildItem $bDest -Directory -Recurse | Where-Object { $_.GetFiles().Count -eq 0 -and $_.GetDirectories().Count -eq 0 -and $_.Name -notmatch "Steam Backups|Microsoft Store Backups" }) { 
+		(Get-ChildItem $bDest -Directory -Recurse | Where-Object { $_.GetFiles().Count -eq 0 -and $_.GetDirectories().Count -eq 0 -and $_.Name -notmatch "Steam Backups|Microsoft Store Backups"  }).FullName | ForEach-Object {
+			Remove-Item $_ -Force | Out-Null
+		}
+	}
+
 	#Keep 10 backups per game, per game version, within the backup lifetime.
 	(Get-ChildItem $bDest -Recurse -File -Exclude ("*.lnk")).Name -Replace ("\$.*","") | Select-Object -Unique | ForEach-Object {
 		Get-ChildItem $bDest -Recurse -File | Where-Object { $_.LastWriteTime -lt $dDate } | Sort-Object LastWriteTime -Desc | Select-Object -Skip 10 | Remove-Item -Force | Out-Null
 	}
 	Get-Done
-
-	#Write shortcuts to save folders based on install type.
-	If ($gInstalledSteam) {
-		$WshShell = New-Object -comObject WScript.Shell
-		$Shortcut = $WshShell.CreateShortcut("$bDest\Astroneer Savegames Shortcut (Steam).lnk")
-		$Shortcut.TargetPath = "explorer"
-		$Shortcut.Arguments = "$bSourceSteam"
-		$Shortcut.Save()
-	}
-	If ($gInstalledUWP) {
-		$WshShell = New-Object -comObject WScript.Shell
-		$Shortcut = $WshShell.CreateShortcut("$bDest\Astroneer Savegames Shortcut (Microsoft Store).lnk")
-		$Shortcut.TargetPath = "explorer"
-		$Shortcut.Arguments = "$bSourceUWP"
-		$Shortcut.Save()
-	}
 }
 
 #Disable Astroneer backup. Avoid deleting backups.
@@ -1078,7 +1159,7 @@ Function Disable-Backup {
 				"Y" {
 					$bChecked = $True
 					Get-Done
-					(Get-ChildItem $bDest -File -Recurse | Where-Object -Property FullName -match "^.*sav(egame)?$|^[A-Z0-9]{32}$").FullName | Remove-Item -Force
+					(Get-ChildItem $bDest -File -Recurse | Where-Object -Property FullName -match "^.*sav(egame)?$|\\[A-Z0-9]{32}$").FullName | Remove-Item -Force
 					Get-Done
 					Write-Blank(1)
 					Write-Host -F RED "ASTRONEER BACKUPS DELETED:" $bDest
@@ -1098,14 +1179,14 @@ Function Disable-Backup {
 			Write-Host -F GREEN "NO backups found in backup destination:" $bDest
 			Write-Blank(1)
 			Write-Host -F YELLOW "DELETING backup destination:" $bDest
-			If ((Get-ChildItem $bDest -File -Recurse).Count -eq 0) {
+			If ((Get-ChildItem $bDest -File -Recurse -Exclude ("*.lnk")).Count -eq 0) {
 				Remove-Item -Path $bDest -Force -Recurse -Confirm:$False | Out-Null
 				Get-Done
 				Write-Host -F GREEN "DELETED backup destination:" $bDest
 				}
 				Else {
 					$bForeign = $True
-					Write-Host -F RED "ERROR deleting backup destination due to FOREIGN files:" (Get-ChildItem $bDest -File -Recurse).FullName | Select-Object -First 1
+					Write-Host -F RED "ERROR deleting backup destination due to FOREIGN files:" (Get-ChildItem $bDest -Recurse -File).FullName | Where-Object { $_ -notmatch ".*lnk$|^.*sav(egame)?$|\\[A-Z0-9]{32}$"} | Select-Object -First 1
 			}
 			If ($bDestExists -And !$bForeign) {
 				Write-Host -F RED "ERROR deleting backup destination:" $bDest
@@ -1136,6 +1217,7 @@ Function Disable-Backup {
 
 Function Disable-Backup-1.3 {
 	Clear-Host
+
 	#Declare savegames location.
 	$bSource = "$env:LOCALAPPDATA\Astro\Saved\SaveGames\"
 
@@ -1151,7 +1233,6 @@ Function Disable-Backup-1.3 {
 	$bLifetimeConfig = "$bConfig" + "bLifetime.cfg"
 
 	#Declare task audit export, task names, and combinations.
-	#These prevent the script from running unless the game is also running. You're welcome.
 	$bTaskAudit = "$env:TEMP\secpol.cfg"
 	$bTaskName = "AstroneerBackup"
 
@@ -1307,7 +1388,6 @@ Function Disable-Backup-1.3 {
 	Clear-Host
 	Exit
 }
-
 
 #HAIL LORD ZEBRA!
 Function Write-Zebra([char[]]$Text) {
