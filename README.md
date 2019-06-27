@@ -1,5 +1,5 @@
 
-# [Download Astroneer Backup Version 1.4](https://github.com/Xechorizo/Astroneer-Backup/blob/dev/AstroneerBackup.exe)
+# [Download Astroneer Backup Version 1.4.1](https://github.com/Xechorizo/Astroneer-Backup/blob/dev/AstroneerBackup.exe)
 ###### [EXE Clean Scan](https://www.virustotal.com/gui/file/aa9caf39beeb5c7d7c6dcb08814d8d59915c6e1673fc9910e5d569b43c3220d1/detection)
 ###### SHA256: aa9caf39beeb5c7d7c6dcb08814d8d59915c6e1673fc9910e5d569b43c3220d1
 
@@ -37,9 +37,13 @@
 - Backups older than the backup lifetime are deleted.
 
 ## Change Log
+#### 1.4.1
+- Added platform-specific subfolders to destination
+- Improved cleanup
+
 #### 1.4
 - Added support for Microsoft Store version (Windows 10 1809+ UWP)
-- Added savegame folder shortcuts to backup destination
+- Added shortcuts to savegame folders in backup destination
 - Added configuration of backup destination
 - Added support for all Steam libraries
 - Added additional credits
@@ -85,8 +89,7 @@
 - Add backup throttle
 - Add disk space check
 - Add automatic updates
-- Add platform-specific subfolders to destination
-- Add savegame title subfolders to UWP destination
+- Add savegame-named subfolders for UWP saves
 
 ## Disclosure
 ### *MAKE MANUAL BACKUPS PRIOR TO USE*
