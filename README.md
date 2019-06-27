@@ -1,12 +1,12 @@
 
 # [Download Astroneer Backup Version 1.4.1](https://github.com/Xechorizo/Astroneer-Backup/blob/dev/AstroneerBackup.exe)
-###### [EXE Clean Scan](https://www.virustotal.com/gui/file/aa9caf39beeb5c7d7c6dcb08814d8d59915c6e1673fc9910e5d569b43c3220d1/detection)
-###### SHA256: aa9caf39beeb5c7d7c6dcb08814d8d59915c6e1673fc9910e5d569b43c3220d1
+###### [EXE Clean Scan](https://www.virustotal.com/gui/file/de61d4341dae3261c13923fbd88eabc9387299e1f1596cf9e591806b19649f65/detection)
+###### SHA256: de61d4341dae3261c13923fbd88eabc9387299e1f1596cf9e591806b19649f65
 
-###### [PS1 Clean Scan](https://www.virustotal.com/gui/file/72cfceba0ee91558c5e9a0268141a28a8161d48b22acca8192243bd888167db5/detection)
-###### SHA256: 72cfceba0ee91558c5e9a0268141a28a8161d48b22acca8192243bd888167db5
+###### [PS1 Clean Scan](https://www.virustotal.com/gui/file/d207e02ae7fb3432c59a2de400e25433b373c0695260fc0915d82de57ab1f0e7/detection)
+###### SHA256: d207e02ae7fb3432c59a2de400e25433b373c0695260fc0915d82de57ab1f0e7
 
-![Screenshot](https://i.imgur.com/GlGIWFI.png)
+![Screenshot](https://i.imgur.com/5gHwipx.png)
 
 ### Made by Xech
 - Written for Astroneer 1.2.9.0 on Steam and Microsoft Store - Authored June 2019
