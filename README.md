@@ -86,6 +86,8 @@
 - Initial release
 
 #### Future:
+- Add backup restore
+- Add backup seeding
 - Add backup throttle
 - Add disk space check
 - Add automatic updates
