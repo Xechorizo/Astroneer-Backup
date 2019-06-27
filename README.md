@@ -1,10 +1,10 @@
 
 # [Download Astroneer Backup Version 1.4.1](https://github.com/Xechorizo/Astroneer-Backup/blob/master/AstroneerBackup.exe)
-###### [EXE Clean Scan](https://www.virustotal.com/gui/file/de61d4341dae3261c13923fbd88eabc9387299e1f1596cf9e591806b19649f65/detection)
-###### SHA256: de61d4341dae3261c13923fbd88eabc9387299e1f1596cf9e591806b19649f65
+###### [EXE Clean Scan](https://www.virustotal.com/gui/file/d8faae1b9604b32c02849eee2f6b943de399562ac6b32d210c2c1a5e7d379472/detection)
+###### SHA256: d8faae1b9604b32c02849eee2f6b943de399562ac6b32d210c2c1a5e7d379472
 
-###### [PS1 Clean Scan](https://www.virustotal.com/gui/file/d207e02ae7fb3432c59a2de400e25433b373c0695260fc0915d82de57ab1f0e7/detection)
-###### SHA256: d207e02ae7fb3432c59a2de400e25433b373c0695260fc0915d82de57ab1f0e7
+###### [PS1 Clean Scan](https://www.virustotal.com/gui/file/b007dbede94ec6de16821fba79e962ef5cce2345427eb7163a56d82e84d81e64/detection)
+###### SHA256: b007dbede94ec6de16821fba79e962ef5cce2345427eb7163a56d82e84d81e64
 
 ![Screenshot](https://i.imgur.com/5gHwipx.png)
 
@@ -86,6 +86,8 @@
 - Initial release
 
 #### Future:
+- Add backup restore
+- Add backup seeding
 - Add backup throttle
 - Add disk space check
 - Add automatic updates

@@ -117,7 +117,7 @@ Function Get-LaunchDirs {
 		Until ([bool]$gLaunchDirSteam)
 	}
 	If ($script:gInstalledUWP -And (![bool]$script:gLaunchDirUWP))  {
-		Write-Host -F WHITE "Steam game not found in default location. Launching briefly to get path..."
+		Write-Host -F WHITE "Microsoft Store game not found in default location. Launching briefly to get path..."
 		Start-Process ("Shell:AppsFolder\" + $(Get-AppxPackage SystemEraSoftworks*).PackageFamilyName + "!ASTRONEER")
 		$sLaunched = $True
 		Do {
@@ -128,7 +128,7 @@ Function Get-LaunchDirs {
 				Start-Sleep -Seconds 1
 			}
 		}
-		Until ([bool]$gLaunchDirSteam)
+		Until ([bool]$gLaunchDirUWP)
 	}
 
 	#If script launched the game, close it. Otherwise, leave your game running.
@@ -857,7 +857,7 @@ Function Get-LaunchDirs {
 				Start-Sleep -Seconds 1
 			}
 		}
-		Until ([bool]$gLaunchDirSteam)
+		Until ([bool]$gLaunchDirUWP)
 	}
 
 	#If script launched the game, close it. Otherwise, leave your game running.
