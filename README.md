@@ -84,7 +84,9 @@
 #### Future:
 - Add backup throttle
 - Add disk space check
-- Automatically update
+- Add automatic updates
+- Add platform-specific subfolders to destination
+- Add savegame title subfolders to UWP destination
 
 ## Disclosure
 ### *MAKE MANUAL BACKUPS PRIOR TO USE*
