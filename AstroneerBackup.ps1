@@ -5,10 +5,10 @@
 #PROVIDED AS-IS WITH NO GUARANTEE EXPRESS OR IMPLIED
 
 #Astroneer Backup Version
-$bVersion = "1.4.1"
+$bVersion = "1.4.2"
 
 #Error prefernce.
-$ErrorActionPreference = "Stop"
+$ErrorActionPreference = "Inquire"
 
 #Self-elevate the script, if required.
 If (!([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] 'Administrator')) {
@@ -33,7 +33,6 @@ If (!$cPrinc.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
 #Wait to receive any key from user.
 Function Get-Prompt {
 	cmd /c pause | Out-Null
-
 	#$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown')
 }
 
@@ -49,7 +48,7 @@ Function Write-Blank($Count) {
 #Declare savegame locations.
 $bSourceSteam = "$env:LOCALAPPDATA\Astro\Saved\SaveGames\"
 $bSourceSteamExists = $(Test-Path $bSourceSteam)
-If (Test-Path ((Get-ChildItem $env:LOCALAPPDATA\Packages\SystemEraSoftworks*\SystemAppData\wgs\ -Recurse -Filter container.*).FullName | Where-Object { Format-Hex $_ | Select-String S.A.V.E. } | Split-Path)) {
+If ([bool]$(Get-ChildItem $env:LOCALAPPDATA\Packages\SystemEraSoftworks*\SystemAppData\wgs\ -Recurse -Filter container.* -ErrorAction SilentlyContinue).FullName) {
 	$bSourceUWP = (Get-ChildItem $env:LOCALAPPDATA\Packages\SystemEraSoftworks*\SystemAppData\wgs\ -Recurse -Filter container.*).FullName | Where-Object { Format-Hex $_ | Select-String S.A.V.E. } | Split-Path
 	$bSourceUWPExists = $True
 }
@@ -97,7 +96,7 @@ Function Get-LaunchDirs {
 	}
 
 	#Check the Microsoft Store packages next.
-	If (Test-Path $(Get-AppxPackage SystemEraSoftworks*).InstallLocation) {
+	If ([bool]$(Get-AppxPackage SystemEraSoftworks* -ErrorAction SilentlyContinue).InstallLocation) {
 		$script:gLaunchDirUWP = $(Get-AppxPackage SystemEraSoftworks*).InstallLocation + "\Astro\Binaries\UWP64\Astro-UWP64-Shipping.exe"
 	}
 
@@ -828,7 +827,7 @@ Function Get-LaunchDirs {
 	}
 
 	#Check the Microsoft Store packages next.
-	If (Test-Path $(Get-AppxPackage SystemEraSoftworks*).InstallLocation) {
+	If ([bool]$(Get-AppxPackage SystemEraSoftworks* -ErrorAction SilentlyContinue).InstallLocation) {
 		$script:gLaunchDirUWP = $(Get-AppxPackage SystemEraSoftworks*).InstallLocation + "\Astro\Binaries\UWP64\Astro-UWP64-Shipping.exe"
 	}
 
@@ -1093,8 +1092,12 @@ Function Disable-Backup {
 	Get-Done
 	If ($bTaskExists) {
 		Write-Host -F YELLOW "DELETING Astroneer backup scheduled tasks:" $bTaskNameSteam $bTaskNameUWP
-		Unregister-ScheduledTask -TaskName "$bTaskNameSteam" -Confirm:$False | Out-Null
-		Unregister-ScheduledTask -TaskName "$bTaskNameUWP" -Confirm:$False | Out-Null
+		If ([bool]$(Get-ScheduledTask -TaskName $bTaskNameSteam -ErrorAction SilentlyContinue)) {
+			Unregister-ScheduledTask -TaskName "$bTaskNameSteam" -Confirm:$False | Out-Null
+		}
+		If ([bool]$(Get-ScheduledTask -TaskName $bTaskNameUWP -ErrorAction SilentlyContinue)) {
+			Unregister-ScheduledTask -TaskName "$bTaskNameUWP" -Confirm:$False | Out-Null
+		}
 		Get-Done
 		If ($bTaskExists) {
 			Write-Host -F RED "ERROR deleting Astroneer backup scheduled tasks:" $bTaskNameSteam $bTaskNameUWP

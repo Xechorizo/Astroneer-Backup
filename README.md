@@ -1,15 +1,15 @@
 
-# [Download Astroneer Backup Version 1.4.1](https://github.com/Xechorizo/Astroneer-Backup/blob/master/AstroneerBackup.exe)
-###### [EXE Clean Scan](https://www.virustotal.com/gui/file/d8faae1b9604b32c02849eee2f6b943de399562ac6b32d210c2c1a5e7d379472/detection)
-###### SHA256: d8faae1b9604b32c02849eee2f6b943de399562ac6b32d210c2c1a5e7d379472
+# [Download Astroneer Backup Version 1.4.2](https://github.com/Xechorizo/Astroneer-Backup/blob/master/AstroneerBackup.exe)
+###### [EXE Scan](https://www.virustotal.com/gui/file/913bed8f76b11a2716878b0626b8ef8762a0bfaf8a7af9131a13d4aec3c8e6f2/detection)
+###### SHA256: 913bed8f76b11a2716878b0626b8ef8762a0bfaf8a7af9131a13d4aec3c8e6f2
 
-###### [PS1 Clean Scan](https://www.virustotal.com/gui/file/b007dbede94ec6de16821fba79e962ef5cce2345427eb7163a56d82e84d81e64/detection)
-###### SHA256: b007dbede94ec6de16821fba79e962ef5cce2345427eb7163a56d82e84d81e64
+###### [PS1 Scan](https://www.virustotal.com/gui/file/43f0e09386ed3dad36930b58c6f078db330c12c099ef7ec79ee48cba8b36178d/detection)
+###### SHA256: 43f0e09386ed3dad36930b58c6f078db330c12c099ef7ec79ee48cba8b36178d
 
-![Screenshot](https://i.imgur.com/5gHwipx.png)
+![Screenshot](https://i.imgur.com/P3YPkY8.png)
 
 ### Made by Xech
-- Written for Astroneer 1.2.9.0 on Steam and Microsoft Store - Authored June 2019
+- Written for Astroneer 1.2.9.0 on Steam and 1.2.10.0 on Microsoft Store - Authored July 2019
 
 ## Readme
 ### What does it do?
@@ -37,6 +37,9 @@
 - Backups older than the backup lifetime are deleted.
 
 ## Change Log
+#### 1.4.2
+- Improved UWP path checks
+
 #### 1.4.1
 - Added platform-specific subfolders to destination
 - Improved cleanup
