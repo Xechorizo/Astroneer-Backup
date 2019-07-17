@@ -1,12 +1,12 @@
 
 # [Download Astroneer Backup Version 1.4.3](https://github.com/Xechorizo/Astroneer-Backup/blob/dev/AstroneerBackup.exe)
-###### [EXE Scan](https://www.virustotal.com/gui/file/913bed8f76b11a2716878b0626b8ef8762a0bfaf8a7af9131a13d4aec3c8e6f2/detection)
-###### SHA256: 913bed8f76b11a2716878b0626b8ef8762a0bfaf8a7af9131a13d4aec3c8e6f2
+###### [EXE Scan](https://www.virustotal.com/gui/file/66019a4278aa16a6313deeec299e6be052da6e9e80efccebe1190f5e5267a874/detection)
+###### SHA256: 66019a4278aa16a6313deeec299e6be052da6e9e80efccebe1190f5e5267a874
 
-###### [PS1 Scan](https://www.virustotal.com/gui/file/43f0e09386ed3dad36930b58c6f078db330c12c099ef7ec79ee48cba8b36178d/detection)
-###### SHA256: 43f0e09386ed3dad36930b58c6f078db330c12c099ef7ec79ee48cba8b36178d
+###### [PS1 Scan](https://www.virustotal.com/gui/file/bbd9736ac214e30a80b4c1ddb03f2fc13e3b4db69d2e8e2d7dfca5c9346553d2/detection)
+###### SHA256: bbd9736ac214e30a80b4c1ddb03f2fc13e3b4db69d2e8e2d7dfca5c9346553d2
 
-![Screenshot](https://i.imgur.com/P3YPkY8.png)
+![Screenshot](https://i.imgur.com/EA52mlg.png)
 
 ### Made by Xech
 - Written for Astroneer 1.2.9.0 on Steam and 1.2.10.0 on Microsoft Store - Authored July 2019
@@ -39,6 +39,7 @@
 ## Change Log
 #### 1.4.3
 - Improved UWP save compatibility
+- Improved upgrade detection
 
 #### 1.4.2
 - Improved UWP path checks
