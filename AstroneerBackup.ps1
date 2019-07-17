@@ -5,7 +5,7 @@
 #PROVIDED AS-IS WITH NO GUARANTEE EXPRESS OR IMPLIED
 
 #Astroneer Backup Version
-$bVersion = "1.4.2"
+$bVersion = "1.4.3"
 
 #Error prefernce.
 $ErrorActionPreference = "Inquire"
@@ -49,7 +49,7 @@ Function Write-Blank($Count) {
 $bSourceSteam = "$env:LOCALAPPDATA\Astro\Saved\SaveGames\"
 $bSourceSteamExists = $(Test-Path $bSourceSteam)
 If ([bool]$(Get-ChildItem $env:LOCALAPPDATA\Packages\SystemEraSoftworks*\SystemAppData\wgs\ -Recurse -Filter container.* -ErrorAction SilentlyContinue).FullName) {
-	$bSourceUWP = (Get-ChildItem $env:LOCALAPPDATA\Packages\SystemEraSoftworks*\SystemAppData\wgs\ -Recurse -Filter container.*).FullName | Where-Object { Format-Hex $_ | Select-String S.A.V.E. } | Split-Path
+	$bSourceUWP = (Get-ChildItem $env:LOCALAPPDATA\Packages\SystemEraSoftworks*\SystemAppData\wgs\ -Recurse -Filter container.*).FullName | Where-Object { Format-Hex $_ | Select-String "\$\.(\d\.){4}" } | Split-Path
 	$bSourceUWPExists = $True
 }
 
@@ -788,8 +788,8 @@ Function Enable-Backup {
 
 #Declare paths and backup lifetime.
 $bSourceSteam = "$env:LOCALAPPDATA\Astro\Saved\SaveGames\"
-If (Test-Path ((Get-ChildItem $env:LOCALAPPDATA\Packages\SystemEraSoftworks*\SystemAppData\wgs\ -Recurse -Filter container.*).FullName | Where-Object { Format-Hex $_ | Select-String S.A.V.E. } | Split-Path)) {
-	$bSourceUWP = (Get-ChildItem $env:LOCALAPPDATA\Packages\SystemEraSoftworks*\SystemAppData\wgs\ -Recurse -Filter container.*).FullName | Where-Object { Format-Hex $_ | Select-String S.A.V.E. } | Split-Path
+If ([bool]$(Get-ChildItem $env:LOCALAPPDATA\Packages\SystemEraSoftworks*\SystemAppData\wgs\ -Recurse -Filter container.* -ErrorAction SilentlyContinue).FullName) {
+	$bSourceUWP = (Get-ChildItem $env:LOCALAPPDATA\Packages\SystemEraSoftworks*\SystemAppData\wgs\ -Recurse -Filter container.*).FullName | Where-Object { Format-Hex $_ | Select-String "\$\.(\d\.){4}" } | Split-Path
 }
 $bConfig = "C:\ProgramData\AstroneerBackup\"
 $bDestConfig = "$bConfig" + "bDest.cfg"

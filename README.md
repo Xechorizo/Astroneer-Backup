@@ -1,5 +1,5 @@
 
-# [Download Astroneer Backup Version 1.4.2](https://github.com/Xechorizo/Astroneer-Backup/blob/dev/AstroneerBackup.exe)
+# [Download Astroneer Backup Version 1.4.3](https://github.com/Xechorizo/Astroneer-Backup/blob/dev/AstroneerBackup.exe)
 ###### [EXE Scan](https://www.virustotal.com/gui/file/913bed8f76b11a2716878b0626b8ef8762a0bfaf8a7af9131a13d4aec3c8e6f2/detection)
 ###### SHA256: 913bed8f76b11a2716878b0626b8ef8762a0bfaf8a7af9131a13d4aec3c8e6f2
 
@@ -37,6 +37,9 @@
 - Backups older than the backup lifetime are deleted.
 
 ## Change Log
+#### 1.4.3
+- Improved UWP save compatibility
+
 #### 1.4.2
 - Improved UWP path checks
 
