@@ -1,12 +1,12 @@
 
-# [Download Astroneer Backup Version 1.4.2](https://github.com/Xechorizo/Astroneer-Backup/blob/master/AstroneerBackup.exe)
-###### [EXE Scan](https://www.virustotal.com/gui/file/913bed8f76b11a2716878b0626b8ef8762a0bfaf8a7af9131a13d4aec3c8e6f2/detection)
-###### SHA256: 913bed8f76b11a2716878b0626b8ef8762a0bfaf8a7af9131a13d4aec3c8e6f2
+# [Download Astroneer Backup Version 1.4.3](https://github.com/Xechorizo/Astroneer-Backup/blob/dev/AstroneerBackup.exe)
+###### [EXE Scan](https://www.virustotal.com/gui/file/639af4d14037e7bf7df910dfaef9bae95b62f0f6b205d574f155f5c116ad4ba4/detection)
+###### SHA256: 639af4d14037e7bf7df910dfaef9bae95b62f0f6b205d574f155f5c116ad4ba4
 
-###### [PS1 Scan](https://www.virustotal.com/gui/file/43f0e09386ed3dad36930b58c6f078db330c12c099ef7ec79ee48cba8b36178d/detection)
-###### SHA256: 43f0e09386ed3dad36930b58c6f078db330c12c099ef7ec79ee48cba8b36178d
+###### [PS1 Scan](https://www.virustotal.com/gui/file/424a873ddeec9f379307ac1451fdd3b4f584bf0606a471c5f308224d2dd45790/detection)
+###### SHA256: 424a873ddeec9f379307ac1451fdd3b4f584bf0606a471c5f308224d2dd45790
 
-![Screenshot](https://i.imgur.com/P3YPkY8.png)
+![Screenshot](https://i.imgur.com/EA52mlg.png)
 
 ### Made by Xech
 - Written for Astroneer 1.2.9.0 on Steam and 1.2.10.0 on Microsoft Store - Authored July 2019
@@ -20,8 +20,8 @@
 - When saves are backed up, they're copied here by default: **%userprofile%\Saved Games\AstroneerBackup**
 
 ### How do I use it?
-- Astroneer Backup is best run from the [.EXE](https://github.com/Xechorizo/Astroneer-Backup/blob/master/AstroneerBackup.exe).
-- You can examine the code using the included [.PS1](https://github.com/Xechorizo/Astroneer-Backup/blob/master/AstroneerBackup.ps1).
+- Astroneer Backup is best run from the [.EXE](https://github.com/Xechorizo/Astroneer-Backup/blob/dev/AstroneerBackup.exe).
+- You can examine the code using the included [.PS1](https://github.com/Xechorizo/Astroneer-Backup/blob/dev/AstroneerBackup.ps1).
 - It must be run as **Administrator**. It will try to ensure this.
 - To enable backup, type **1** and Enter at the Main Menu.
 - To disable backup, type **2** and Enter at the Main Menu.
@@ -37,6 +37,10 @@
 - Backups older than the backup lifetime are deleted.
 
 ## Change Log
+#### 1.4.3
+- Improved UWP save compatibility
+- Improved upgrade detection
+
 #### 1.4.2
 - Improved UWP path checks
 
@@ -94,6 +98,7 @@
 - Add backup throttle
 - Add disk space check
 - Add automatic updates
+- Add junction point support
 - Add savegame-named subfolders for UWP saves
 
 ## Disclosure

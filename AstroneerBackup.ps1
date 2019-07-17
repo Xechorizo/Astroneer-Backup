@@ -5,7 +5,7 @@
 #PROVIDED AS-IS WITH NO GUARANTEE EXPRESS OR IMPLIED
 
 #Astroneer Backup Version
-$bVersion = "1.4.2"
+$bVersion = "1.4.3"
 
 #Error prefernce.
 $ErrorActionPreference = "Inquire"
@@ -49,7 +49,7 @@ Function Write-Blank($Count) {
 $bSourceSteam = "$env:LOCALAPPDATA\Astro\Saved\SaveGames\"
 $bSourceSteamExists = $(Test-Path $bSourceSteam)
 If ([bool]$(Get-ChildItem $env:LOCALAPPDATA\Packages\SystemEraSoftworks*\SystemAppData\wgs\ -Recurse -Filter container.* -ErrorAction SilentlyContinue).FullName) {
-	$bSourceUWP = (Get-ChildItem $env:LOCALAPPDATA\Packages\SystemEraSoftworks*\SystemAppData\wgs\ -Recurse -Filter container.*).FullName | Where-Object { Format-Hex $_ | Select-String S.A.V.E. } | Split-Path
+	$bSourceUWP = (Get-ChildItem $env:LOCALAPPDATA\Packages\SystemEraSoftworks*\SystemAppData\wgs\ -Recurse -Filter container.*).FullName | Where-Object { Format-Hex $_ | Select-String "\$\.(\d\.){4}" } | Split-Path
 	$bSourceUWPExists = $True
 }
 
@@ -320,13 +320,19 @@ Function Get-AltTab {
 #Disable old versions of Astroneer Backup
 Function Get-UpgradeNeeded {
 	Get-Done
-	If (Test-Path "$env:USERPROFILE\Saved Games\AstroneerBackup\Config\AstroneerBackup.ps1") { 
-		If (!(Get-Content "$env:USERPROFILE\Saved Games\AstroneerBackup\Config\AstroneerBackup.ps1")[0].Contains($bVersion) -Or ([bool]($bScriptExists) -And (!(Get-Content $bScript)[0].Contains($bVersion)))) {
-			$OldVersion = (Get-Content "$env:USERPROFILE\Saved Games\AstroneerBackup\Config\AstroneerBackup.ps1")[0]
+	If (Test-Path "$env:USERPROFILE\Saved Games\AstroneerBackup\Config\AstroneerBackup.ps1") {
+		If (!(Get-Content "$env:USERPROFILE\Saved Games\AstroneerBackup\Config\AstroneerBackup.ps1")[0].Contains($bVersion)) {
+			$script:OldVersion = (Get-Content "$env:USERPROFILE\Saved Games\AstroneerBackup\Config\AstroneerBackup.ps1")[0]
+		}
+	}
+	If ([bool]($bScriptExists) -And (!(Get-Content $bScript)[0].Contains($bVersion))) {
+		$script:OldVersion = (Get-Content $bScript)[0]
+	}
+	If ($script:OldVersion) {
 			Write-Host -F RED "WARNING - ASTRONEER BACKUP VERSION MISMATCH"
 			Write-Blank(1)
 			Write-Host -F YELLOW "This version: " -N; Write-Host -F GREEN "#Astroneer Backup $bVersion"
-			Write-Host -F YELLOW "Installed version: " -N; Write-Host -F RED $OldVersion
+			Write-Host -F YELLOW "Installed version: " -N; Write-Host -F RED $script:OldVersion
 			Write-Blank(5)
 			Do {
 				Write-Host -N -F YELLOW "Would you like to DISABLE, EXIT, and try again Y/(N)? "
@@ -342,7 +348,12 @@ Function Get-UpgradeNeeded {
 			Switch -Regex ($Choice) {
 				"Y" {
 					Clear-Host
-					Disable-Backup-1.3
+					If ((Test-Path "$env:USERPROFILE\Saved Games\AstroneerBackup\Config\AstroneerBackup.ps1") -And !($script:OldVersion.Contains($bVersion))) {
+						Disable-Backup-1.3
+					}
+						Else {
+							Disable-Backup
+					}
 				}
 				"N|^$" {
 					Clear-Host
@@ -351,7 +362,6 @@ Function Get-UpgradeNeeded {
 			}
 		}
 	}
-}
 
 #Main Menu
 Function Write-MainMenu {
@@ -788,8 +798,8 @@ Function Enable-Backup {
 
 #Declare paths and backup lifetime.
 $bSourceSteam = "$env:LOCALAPPDATA\Astro\Saved\SaveGames\"
-If (Test-Path ((Get-ChildItem $env:LOCALAPPDATA\Packages\SystemEraSoftworks*\SystemAppData\wgs\ -Recurse -Filter container.*).FullName | Where-Object { Format-Hex $_ | Select-String S.A.V.E. } | Split-Path)) {
-	$bSourceUWP = (Get-ChildItem $env:LOCALAPPDATA\Packages\SystemEraSoftworks*\SystemAppData\wgs\ -Recurse -Filter container.*).FullName | Where-Object { Format-Hex $_ | Select-String S.A.V.E. } | Split-Path
+If ([bool]$(Get-ChildItem $env:LOCALAPPDATA\Packages\SystemEraSoftworks*\SystemAppData\wgs\ -Recurse -Filter container.* -ErrorAction SilentlyContinue).FullName) {
+	$bSourceUWP = (Get-ChildItem $env:LOCALAPPDATA\Packages\SystemEraSoftworks*\SystemAppData\wgs\ -Recurse -Filter container.*).FullName | Where-Object { Format-Hex $_ | Select-String "\$\.(\d\.){4}" } | Split-Path
 }
 $bConfig = "C:\ProgramData\AstroneerBackup\"
 $bDestConfig = "$bConfig" + "bDest.cfg"
@@ -1216,6 +1226,7 @@ Function Disable-Backup {
 		Write-Host -N -F YELLOW "Press any key to CONTINUE..."
 		Get-Prompt
 	}
+	$script:OldVersion = ""
 }
 
 Function Disable-Backup-1.3 {
@@ -1382,7 +1393,8 @@ Function Disable-Backup-1.3 {
 		}
 	}
 	Clear-Host
-	Write-Host -F GREEN "DISABLED: $OldVersion"
+	Write-Host -F GREEN "DISABLED: $script:OldVersion"
+	$script:OldVersion = ""
 	Write-Blank(1)
 	Write-Host -F White "Please EXIT and try again."
 	Write-Blank(1)
