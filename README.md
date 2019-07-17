@@ -97,6 +97,7 @@
 - Add backup throttle
 - Add disk space check
 - Add automatic updates
+- Add junction point support
 - Add savegame-named subfolders for UWP saves
 
 ## Disclosure
