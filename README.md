@@ -93,6 +93,9 @@
 - Initial release
 
 #### Future:
+- Improve Readme
+- Improve redundance message
+- Add to Credits
 - Add backup restore
 - Add backup seeding
 - Add backup throttle
