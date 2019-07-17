@@ -1,10 +1,10 @@
 
 # [Download Astroneer Backup Version 1.4.3](https://github.com/Xechorizo/Astroneer-Backup/blob/dev/AstroneerBackup.exe)
-###### [EXE Scan](https://www.virustotal.com/gui/file/66019a4278aa16a6313deeec299e6be052da6e9e80efccebe1190f5e5267a874/detection)
-###### SHA256: 66019a4278aa16a6313deeec299e6be052da6e9e80efccebe1190f5e5267a874
+###### [EXE Scan](https://www.virustotal.com/gui/file/639af4d14037e7bf7df910dfaef9bae95b62f0f6b205d574f155f5c116ad4ba4/detection)
+###### SHA256: 639af4d14037e7bf7df910dfaef9bae95b62f0f6b205d574f155f5c116ad4ba4
 
-###### [PS1 Scan](https://www.virustotal.com/gui/file/bbd9736ac214e30a80b4c1ddb03f2fc13e3b4db69d2e8e2d7dfca5c9346553d2/detection)
-###### SHA256: bbd9736ac214e30a80b4c1ddb03f2fc13e3b4db69d2e8e2d7dfca5c9346553d2
+###### [PS1 Scan](https://www.virustotal.com/gui/file/424a873ddeec9f379307ac1451fdd3b4f584bf0606a471c5f308224d2dd45790/detection)
+###### SHA256: 424a873ddeec9f379307ac1451fdd3b4f584bf0606a471c5f308224d2dd45790
 
 ![Screenshot](https://i.imgur.com/EA52mlg.png)
 
