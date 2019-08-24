@@ -58,7 +58,7 @@ $bScriptName = "AstroneerBackup.ps1"
 $bConfig = "C:\ProgramData\AstroneerBackup\"
 $bScript = $bConfig + $bScriptName
 
-#Declare backup lifetime config path. 
+#Declare backup lifetime config path.
 $bLifetimeConfig = "$bConfig" + "bLifetime.cfg"
 $bDestConfig = "$bConfig" + "bDest.cfg"
 
@@ -161,7 +161,7 @@ Function Get-Done {
 	If ($Null -ne $script:bSourceUWP) {
 		$script:bSourceUWPExists = $(Test-Path $bSourceUWP)
 		}
-		Else { 
+		Else {
 			$script:bSourceUWPExists = $False
 	}
 	If ($Null -ne $script:bDest) {
@@ -474,7 +474,7 @@ Function Write-MainMenu {
 				Write-Host -F WHITE "  Yksi, Mitranium, mallaig, sinuhe, Afish, somejerk, System Era, and Paul Pepera " -N; Write-Host -F MAGENTA "<3"
 				Write-Blank(1)
 				Write-Host -F YELLOW "                          Contributors/Forks: " -N; Write-Host -F RED "None yet :)"
-				Write-Blank(1)   
+				Write-Blank(1)
 				Write-Host -F YELLOW "                                 "-N; Write-Zebra "HAIL LORD ZEBRA"
 				Write-Blank(2)
 				Write-Host -N -F YELLOW "Press any key to CONTINUE..."
@@ -499,7 +499,7 @@ Function Write-Task {
 		$Service = New-Object -ComObject ("Schedule.Service")
 		$Service.Connect()
 		$RootFolder = $Service.GetFolder("\")
-		
+
 		$TaskDefinition = $Service.NewTask(0) # TaskDefinition object https://msdn.microsoft.com/en-us/library/windows/desktop/aa382542(v=vs.85).aspx
 		$TaskDefinition.Principal.RunLevel = 1
 		$TaskDefinition.RegistrationInfo.Description = "$bTaskNameSteam"
@@ -509,18 +509,18 @@ Function Write-Task {
 		$TaskDefinition.Settings.StopIfGoingOnBatteries = $False
 		$TaskDefinition.Settings.RunOnlyIfIdle = $False
 		$TaskDefinition.Settings.IdleSettings.StopOnIdleEnd = $False
-		
+
 		$Triggers = $TaskDefinition.Triggers
 		$Trigger = $Triggers.Create(0) # 0 is an event trigger https://msdn.microsoft.com/en-us/library/windows/desktop/aa383898(v=vs.85).aspx
 		$Trigger.Enabled = $True
 		$Trigger.Id = '4688' # 4688 is for process create and 4689 is for process exit
 		$Trigger.Subscription = "<QueryList><Query Id=`"0`" Path=`"Security`"><Select Path=`"Security`"> *[System[Provider[@Name=`'Microsoft-Windows-Security-Auditing`'] and Task = 13312 and (EventID=4688)]] and *[EventData[Data[@Name=`'NewProcessName`'] and (Data=`'" + "$gLaunchDirSteam" + "`')]]</Select></Query></QueryList>"
-		
+
 		$Action = $TaskDefinition.Actions.Create(0)
 		$Action.Path = $Path
 		$Action.Arguments = $Arguments
 
-		
+
 
 		#Needs password? https://powershell.org/forums/topic/securing-password-for-use-with-registertaskdefinition/
 		$RootFolder.RegisterTaskDefinition($bTaskNameSteam, $TaskDefinition, 6, $env:USERNAME, $null, 3) | Out-Null
@@ -533,7 +533,7 @@ Function Write-Task {
 		$Service = New-Object -ComObject ("Schedule.Service")
 		$Service.Connect()
 		$RootFolder = $Service.GetFolder("\")
-		
+
 		$TaskDefinition = $Service.NewTask(0) # TaskDefinition object https://msdn.microsoft.com/en-us/library/windows/desktop/aa382542(v=vs.85).aspx
 		$TaskDefinition.Principal.RunLevel = 1
 		$TaskDefinition.RegistrationInfo.Description = "$bTaskNameUWP"
@@ -543,18 +543,18 @@ Function Write-Task {
 		$TaskDefinition.Settings.StopIfGoingOnBatteries = $False
 		$TaskDefinition.Settings.RunOnlyIfIdle = $False
 		$TaskDefinition.Settings.IdleSettings.StopOnIdleEnd = $False
-		
+
 		$Triggers = $TaskDefinition.Triggers
 		$Trigger = $Triggers.Create(0) # 0 is an event trigger https://msdn.microsoft.com/en-us/library/windows/desktop/aa383898(v=vs.85).aspx
 		$Trigger.Enabled = $True
 		$Trigger.Id = '4688' # 4688 is for process create and 4689 is for process exit
 		$Trigger.Subscription = "<QueryList><Query Id=`"0`" Path=`"Security`"><Select Path=`"Security`"> *[System[Provider[@Name=`'Microsoft-Windows-Security-Auditing`'] and Task = 13312 and (EventID=4688)]] and *[EventData[Data[@Name=`'NewProcessName`'] and (Data=`'" + "$gLaunchDirUWP" + "`')]]</Select></Query></QueryList>"
-		
+
 		$Action = $TaskDefinition.Actions.Create(0)
 		$Action.Path = $Path
 		$Action.Arguments = $Arguments
 
-		
+
 
 		#Needs password? https://powershell.org/forums/topic/securing-password-for-use-with-registertaskdefinition/
 		$RootFolder.RegisterTaskDefinition($bTaskNameUWP, $TaskDefinition, 6, $env:USERNAME, $null, 3) | Out-Null
@@ -668,7 +668,7 @@ Function Enable-Backup {
 
 		#Set platform folders and shortcuts to save folders.
 		If ($gInstalledSteam) {
-			New-Item ($bDest + "Steam Backups\" + $gVersionSteam + "\") -ItemType Directory -Force | Out-Null
+			New-Item ($bDest + "\Steam Backups\" + $gVersionSteam + "\") -ItemType Directory -Force | Out-Null
 			$WshShell = New-Object -comObject WScript.Shell
 			$Shortcut = $WshShell.CreateShortcut("$bDest\Astroneer Savegames Shortcut (Steam).lnk")
 			$Shortcut.TargetPath = "explorer"
@@ -676,7 +676,7 @@ Function Enable-Backup {
 			$Shortcut.Save() | Out-Null
 		}
 		If ($gInstalledUWP) {
-			New-Item ($bDest + "Microsoft Store Backups\" + $gVersionUWP + "\") -ItemType Directory -Force | Out-Null
+			New-Item ($bDest + "\Microsoft Store Backups\" + $gVersionUWP + "\") -ItemType Directory -Force | Out-Null
 			$WshShell = New-Object -comObject WScript.Shell
 			$Shortcut = $WshShell.CreateShortcut("$bDest\Astroneer Savegames Shortcut (Microsoft Store).lnk")
 			$Shortcut.TargetPath = "explorer"
@@ -890,14 +890,14 @@ Function Get-GameVersions {
 }
 
 #Begin Steam watcher.
-$sWatcherSteam = New-Object IO.FileSystemWatcher $bSourceSteam, $bFilter -Property @{ 
+$sWatcherSteam = New-Object IO.FileSystemWatcher $bSourceSteam, $bFilter -Property @{
 	EnableRaisingEvents = $true
 	IncludeSubdirectories = $false
 	NotifyFilter = [System.IO.NotifyFilters]::LastWrite
 }
 
 #Begin UWP watcher.
-$sWatcherUWP = New-Object IO.FileSystemWatcher $bSourceUWP, * -Property @{ 
+$sWatcherUWP = New-Object IO.FileSystemWatcher $bSourceUWP, * -Property @{
 	EnableRaisingEvents = $true
 	IncludeSubdirectories = $false
 	NotifyFilter = [System.IO.NotifyFilters]::FileName,[System.IO.NotifyFilters]::LastWrite,[System.IO.NotifyFilters]::LastAccess,[System.IO.NotifyFilters]::CreationTime,[System.IO.NotifyFilters]::DirectoryName
@@ -967,7 +967,7 @@ $bAction = {
 	}
 
 	#Clean empty folders
-	While (Get-ChildItem $bDest -Directory -Recurse | Where-Object { $_.GetFiles().Count -eq 0 -and $_.GetDirectories().Count -eq 0 -and $_.Name -notmatch "Steam Backups|Microsoft Store Backups" }) { 
+	While (Get-ChildItem $bDest -Directory -Recurse | Where-Object { $_.GetFiles().Count -eq 0 -and $_.GetDirectories().Count -eq 0 -and $_.Name -notmatch "Steam Backups|Microsoft Store Backups" }) {
 		(Get-ChildItem $bDest -Directory -Recurse | Where-Object { $_.GetFiles().Count -eq 0 -and $_.GetDirectories().Count -eq 0 -and $_.Name -notmatch "Steam Backups|Microsoft Store Backups"  }).FullName | ForEach-Object {
 			Remove-Item $_ -Force | Out-Null
 		}
@@ -1083,7 +1083,7 @@ Finally
 	}
 
 	#Clean empty folders
-	While (Get-ChildItem $bDest -Directory -Recurse | Where-Object { $_.GetFiles().Count -eq 0 -and $_.GetDirectories().Count -eq 0 -and $_.Name -notmatch "Steam Backups|Microsoft Store Backups" }) { 
+	While (Get-ChildItem $bDest -Directory -Recurse | Where-Object { $_.GetFiles().Count -eq 0 -and $_.GetDirectories().Count -eq 0 -and $_.Name -notmatch "Steam Backups|Microsoft Store Backups" }) {
 		(Get-ChildItem $bDest -Directory -Recurse | Where-Object { $_.GetFiles().Count -eq 0 -and $_.GetDirectories().Count -eq 0 -and $_.Name -notmatch "Steam Backups|Microsoft Store Backups"  }).FullName | ForEach-Object {
 			Remove-Item $_ -Force | Out-Null
 		}
@@ -1243,7 +1243,7 @@ Function Disable-Backup-1.3 {
 	$bConfig = $bDest + "Config\"
 	$bScript = $bConfig + $bScriptName
 
-	#Declare backup lifetime config path. 
+	#Declare backup lifetime config path.
 	$bLifetimeConfig = "$bConfig" + "bLifetime.cfg"
 
 	#Declare task audit export, task names, and combinations.
@@ -1328,7 +1328,7 @@ Function Disable-Backup-1.3 {
 		Write-Host -N -F YELLOW "Press any key to CONTINUE..."
 		Get-Prompt
 	}
-	
+
 
 
 	If ($bDestExists) {
