@@ -6,7 +6,7 @@
 ###### [PS1 Scan](https://www.virustotal.com/gui/file/424a873ddeec9f379307ac1451fdd3b4f584bf0606a471c5f308224d2dd45790/detection)
 ###### SHA256: 424a873ddeec9f379307ac1451fdd3b4f584bf0606a471c5f308224d2dd45790
 
-![Screenshot](https://i.imgur.com/1AjncWk.png)
+![Screenshot](https://i.imgur.com/EA52mlg.png)
 
 ### Made by Xech
 - Written for Astroneer 1.2.9.0 on Steam and 1.2.10.0 on Microsoft Store - Authored July 2019
